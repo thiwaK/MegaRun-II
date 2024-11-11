@@ -1,15 +1,20 @@
 # 🌌 MegaRun-II
 
-> I'll keep this lit to guide those who are searching for a way out of the darkness.
->
-> මා වැනිම අදුරෙන් මිදීමට මං සොයන්නන්ගේ මඟ ආලෝකමත් කරනු වස් දල්වා තබා යමි 
----
+> "I'll keep this lit to guide those who are searching for a way out of the darkness."
+
+> "මා වැනිම අදුරෙන් මිදීමට මං සොයන්නන්ගේ මඟ ආලෝකමත් කරනු වස් දල්වා තබා යමි."
+
 A Python-based client for _Mega Games_ within the WOW Android app, reverse-engineered for educational purposes, focusing on automation.
 
+---
 ### ❗ Note
 **Please do not contact me personally regarding issues or questions related to this repository.**
 
-### ✨ Features
+**කරුණාකර මෙම රිපෝවට අදාල ගැටළු සම්බන්ධයෙන් මා පුද්ගලිකව සම්බන්ධ කරගැනීමෙන් වලකින්න**
+
+---
+### ✨ Story
+
 
 ### ⚙️ Getting Started
 1. **Clone the Repository**: 
