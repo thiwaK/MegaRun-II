@@ -1,0 +1,10 @@
+*.txt
+*.conf
+*.db
+*.config
+*.js
+*.log
+*.pyc
+*.json
+*.bin
+*.exe
