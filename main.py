@@ -198,8 +198,8 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description="MeagaRun II Client")
 	parser.add_argument("--config", "-c", type=str, default='config.js', help="Specify the path to the configuration file.")
 
-	parser.add_argument("--secondary-config", action="store_false", help="Force load secondary configuration.")
-	parser.add_argument("--update-token", action="store_false", help="Update authentication token.")
+	parser.add_argument("--secondary-config", action="store_true", help="Force load secondary configuration.")
+	parser.add_argument("--update-token", action="store_true", help="Update authentication token.")
 
 	args = parser.parse_args()
 	main = Main(config_file=args.config, force_secondary_config=args.secondary_config, update_token=args.update_token)
