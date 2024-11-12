@@ -184,7 +184,7 @@ class Main:
 		self.getBanners()
 		self.authorizeMegaApp()
 	
-		self.browser = Browser(self.GAME_LAUNCHER_URL, self.GAME_LAUNCHER_TOKEN)
+		self.browser = Browser(self.GAME_LAUNCHER_URL, self.GAME_LAUNCHER_TOKEN, self)
 		self.gameArenaConfig, self.currentGame = self.browser.launch()
 
 		self.raidShooter = RaidShooter(self, self.currentGame)
