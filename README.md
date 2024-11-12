@@ -11,6 +11,13 @@ A Python-based client for _Mega Games_ within the WOW Android app, reverse-engin
 **කරුණාකර මෙම රිපෝවට අදාල ගැටළු සම්බන්ධයෙන් මා පුද්ගලිකව සම්බන්ධ කරගැනීමෙන් වලකින්න**
 
 ---
+### ⚠️ DISCLAIMER
+
+Please note that this app is provided **WITHOUT WARRANTY OR SUPPORT**. Use this software **AT YOUR OWN RISK**. I assume **NO RESPONSIBILITY** for any issues that may arise from its use, including potential account suspension or bans.  **PROCEED WITH CAUTION** and make sure you fully understand the potential risks before using this app.
+
+This app was developed for fun and educational purposes. **DO NOT** use it for any **illegal activities** or in **violation of any terms of service**. I am **NOT RESPONSIBLE** for any of your actions or consequences arising from the use of this app.
+
+---
 ### ✨ Story
 
 The first version of `MegaRun` was developed using the `Unity` game engine, where the scripting language of choice was `C#`. The app relied on the `Assembly-CSharp.dll` file for its core logic. Despite its obfuscated function names filled with random "A"s, moders found it relatively easy to manipulate. They took advantage of this simplicity, modifying the original app to unlock various _"abilities"_. However, these modified versions quickly spread, leading to unintended consequences. The app was terminated due to the widespread misuse of these mods, marking an abrupt end to the original `MegaRun`.
