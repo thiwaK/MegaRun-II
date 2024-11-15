@@ -4,7 +4,7 @@ import json
 import argparse
 
 sys.path.append('src')
-from supper_app import SupperApp as WOW
+from wow import SupperApp as WOW
 from config import Config
 from logger import logger
 from utill import Utill
