@@ -14,7 +14,7 @@ A Python-based client for _Mega Games_ within the WOW Android app, reverse-engin
 ---
 ### ⚠️ DISCLAIMER
 
-Please note that this app is provided **WITHOUT WARRANTY OR SUPPORT**. Use this software **AT YOUR OWN RISK**. I assume **NO RESPONSIBILITY** for any issues that may arise from its use, including potential account suspension or bans.  **PROCEED WITH CAUTION** and make sure you fully understand the potential risks before using this app.
+Please note that this app is provided **WITHOUT WARRANTY OR SUPPORT**. Use this software **AT YOUR OWN RISK**. I assume **NO RESPONSIBILITY** for any issues that may arise from its use, including potential account suspension or bans.  **PROCEED WITH CAUTION** and be sure you understand the risks before using this client app.
 
 This app was developed for fun and educational purposes. **DO NOT** use it for any **illegal activities** or in **violation of any terms of service**. I am **NOT RESPONSIBLE** for any of your actions or consequences arising from the use of this app.
 
@@ -27,7 +27,7 @@ In response, _"the app owner"_ decided to give a second chance to its users. But
 
 When I began this project, it was purely for fun and educational purposes. However, as I delved deeper, I found that achieving my desired results became increasingly difficult. Weeks passed without clear direction, but the more challenging it became, the more obsessed I grew with finding a solution. Despite the frustration, each setback fuelled my determination to explore, to test, and to break through barriers that seemed unbreakable. The journey itself became the reward, a relentless pursuit of understanding and mastery.
 
-My purpose in publishing this repository is to offer some comfort to those on similar journeys, grappling with the same obstacles. If you possess the strength, skills, and determination, you’ll uncover the missing pieces of this puzzle on your own. I won’t be providing hints or guidance, as I fear this app could meet the same fate as its predecessor. _The journey may be challenging, but for those willing to persist, the answers await_.
+I published this repository to offer some comfort to those on similar journeys, grappling with the same obstacles. If you possess the strength, skills, and determination, you’ll uncover the missing pieces of this puzzle on your own. I won’t be providing hints or guidance, as I fear this app could meet the same fate as its predecessor. _The journey may be challenging, but for those willing to persist, the answers await_.
 
 ---
 ### ⚙️ Getting Started
@@ -59,3 +59,25 @@ My purpose in publishing this repository is to offer some comfort to those on si
 ---
 ### 🚀 Contribution
 Contributions are welcome! Feel free to open issues, submit PRs, or suggest improvements to make this resource more valuable to explorers alike.
+
+---
+🙏 Acknowledgements
+
+This project is the result of countless hours of exploration and research in reverse engineering and coding.
+
+Special thanks to the creators and maintainers of the following tools, which were invaluable in this journey:
+
+[hbctool](https://github.com/cyfinoid/hbctool): A command-line interface for disassembling and assembling the Hermes Bytecode.
+
+[hermes-dec](https://github.com/P1sec/hermes-dec): A reverse-engineering tool for disassembling and decompiling React Native files compiled into the Hermes VM bytecode (HBC) format.
+
+[Esprima](https://github.com/jquery/esprima): A high performance, standard-compliant ECMAScript parser.
+
+[mitmproxy](https://github.com/mitmproxy/mitmproxy): An interactive, SSL/TLS-capable intercepting proxy with a console interface for HTTP/1, HTTP/2, and WebSockets.
+
+[Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
+
+
+To all the developers, researchers, and enthusiasts in the reverse-engineering community who share their tools, insights, and experiences: your work continues to inspire and pave the way for others to learn and grow.
+
+Thank you for being part of this journey!
