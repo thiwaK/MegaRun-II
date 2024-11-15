@@ -61,21 +61,21 @@ I published this repository to offer some comfort to those on similar journeys, 
 Contributions are welcome! Feel free to open issues, submit PRs, or suggest improvements to make this resource more valuable to explorers alike.
 
 ---
-🙏 Acknowledgements
+### 🙏 Acknowledgements
 
 This project is the result of countless hours of exploration and research in reverse engineering and coding.
 
 Special thanks to the creators and maintainers of the following tools, which were invaluable in this journey:
 
-[hbctool](https://github.com/cyfinoid/hbctool): A command-line interface for disassembling and assembling the Hermes Bytecode.
+- [hbctool](https://github.com/cyfinoid/hbctool): A command-line interface for disassembling and assembling the Hermes Bytecode.
 
-[hermes-dec](https://github.com/P1sec/hermes-dec): A reverse-engineering tool for disassembling and decompiling React Native files compiled into the Hermes VM bytecode (HBC) format.
+- [hermes-dec](https://github.com/P1sec/hermes-dec): A reverse-engineering tool for disassembling and decompiling React Native files compiled into the Hermes VM bytecode (HBC) format.
 
-[Esprima](https://github.com/jquery/esprima): A high performance, standard-compliant ECMAScript parser.
+- [Esprima](https://github.com/jquery/esprima): A high performance, standard-compliant ECMAScript parser.
 
-[mitmproxy](https://github.com/mitmproxy/mitmproxy): An interactive, SSL/TLS-capable intercepting proxy with a console interface for HTTP/1, HTTP/2, and WebSockets.
+- [mitmproxy](https://github.com/mitmproxy/mitmproxy): An interactive, SSL/TLS-capable intercepting proxy with a console interface for HTTP/1, HTTP/2, and WebSockets.
 
-[Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
+- [Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
 
 
 To all the developers, researchers, and enthusiasts in the reverse-engineering community who share their tools, insights, and experiences: your work continues to inspire and pave the way for others to learn and grow.
