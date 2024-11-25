@@ -53,8 +53,9 @@ I published this repository to offer some comfort to those on similar journeys, 
 | Option               | Description                                                                                                                  |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `--config`,`-c`      | Specify the path to the configuration file. By default, it uses `config.js`                                                  |
-| `--secondary-config` | Force the client to load the secondary configuration. Overrides the primary configuration with a secondary setup.            |
+| `--secondary-config`,`-c2` | Force the client to load the secondary configuration. Overrides the primary configuration with a secondary setup.            |
 | `--update-token`     | Update the authentication token used by the client. Useful for refreshing or regenerating the client’s authentication token. |
+| `--skip-warn`     | Force app to continue over warnings. |
 
 ---
 ### 🚀 Contribution
@@ -75,7 +76,7 @@ Special thanks to the creators and maintainers of the following tools, which wer
 
 - [mitmproxy](https://github.com/mitmproxy/mitmproxy): An interactive, SSL/TLS-capable intercepting proxy with a console interface for HTTP/1, HTTP/2, and WebSockets.
 
-- [Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
+<!-- - [Frida](https://github.com/frida/frida): Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers. -->
 
 
 To all the developers, researchers, and enthusiasts in the reverse-engineering community who share their tools, insights, and experiences: your work continues to inspire and pave the way for others to learn and grow.
