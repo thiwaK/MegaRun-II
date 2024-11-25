@@ -3,92 +3,6 @@ import httpx
 import json
 from logger import logger
 
-class Signin:
-	def __init__(self, instance):
-
-		self.config = instance.config
-		self.utill = instance.utill
-		self.conn = httpx.Client(base_url='https://did.dialog.lk', http2=True)
-		self.headers = {
-			"sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
-			"sec-ch-ua-mobile": ?1,
-			"sec-ch-ua-platform": "Android",
-			"Upgrade-Insecure-Requests": 1,
-			"User-Agent": UA,
-			"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-			"Sec-Fetch-Site": "cross-site",
-			"Sec-Fetch-Mode": "navigate",
-			"Sec-Fetch-Dest": "document",
-			"Referer": "android-app://lk.wow.superman/",
-			"Accept-Encoding": "gzip, deflate, br, zstd",
-			"Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-		}
-
-	def start(self):
-		logger.info(":start:")
-
-		params = {
-		    "redirect_uri": "lk.wow.superman:/callback",
-		    "client_id": "qH9pNK62W8XtInwq1i1mvuYUUJEa", #hard coded
-		    "response_type": "code",
-		    "state": "state76848154",
-		    "nonce": "nonce96918322_17a337b6-3290-4330-9586-e38c4f9495e4",
-		    "scope": "openid",
-		    "mode": "login",
-		    "locale": "EN"
-		}
-
-		headers = self.headers
-		resp = self.conn.request(method='GET', url='/authproxy/oauth2/authorize/operator/spark', params=params, headers=headers)
-		js = self.validateResponse(resp)
-		
-		if js:
-			if js['statusCode'] == 200 and js['data']['statusCode'] == 200:
-				data = js['data']['data']
-				self.headers['authorization'] = "Bearer " + data['accessToken']
-				return js
-
-		logger.debug(resp.status_code)
-		logger.debug(resp.headers)
-		logger.debug(resp.text)
-		return None
-
-
-class AppStatus:
-
-	def __init__(self, instance):
-
-		self.config = instance.config
-		self.utill = instance.utill
-		self.conn = httpx.Client(base_url='https://codepush.appcenter.ms', http2=False)
-		self.headers = {
-			'accept': 'application/json'
-			'x-codepush-plugin-name': 'react-native-code-push'
-			'x-codepush-plugin-version': '7.1.0'
-			'x-codepush-sdk-version': '^4.1.0'
-			'Content-Type': 'application/json'
-			'Accept-Encoding': 'gzip'
-			'User-Agent': 'okhttp/4.9.2'
-		}
-
-	def reportDepolyement(self):
-		
-		body = {
-			"app_version":"1.8.4",
-			"deployment_key":"QrJg_N-BG6brUCYRK1dEB3BH20nbW7aN6oBN2",
-			"client_unique_id":"899d13eb06cd2e4f",
-			"previous_deployment_key":"QrJg_N-BG6brUCYRK1dEB3BH20nbW7aN6oBN2"
-		}
-		body = json.dumps(body)
-
-		headers = self.headers
-
-		resp = self.conn.request(method='POST', url='/superapp-user-profile-service/user/authenticate', data=body, headers=headers)
-		js = self.validateResponse(resp)
-		print(js)
-
-
-
 
 class SupperApp:
 
@@ -329,3 +243,27 @@ class SupperApp:
 		logger.debug(resp.headers)
 		logger.debug(resp.text)
 		return None
+
+	def checkUpdates(self):
+		logger.info(":checkUpdates:")
+
+		try:
+			resp = self.conn.request(method='GET', url='https://api.playstore.rajkumaar.co.in/json?id=lk.wow.superman', headers=self.headers)
+		except httpx.ReadTimeout as e:
+			logger.debug("Read Timeout")
+			return Box({'date':"", 'message':"", 'version':""})
+		except httpx.ConnectError:
+			logger.debug("Connect Error")
+			return Box({'date':"", 'message':"", 'version':""})
+		except httpx.ConnectTimeout:
+			logger.debug("Connect Timeout")
+			return Box({'date':"", 'message':"", 'version':""})
+
+		js = self.validateResponse(resp)
+
+		msg = js.latestUpdateMessage
+		date = js.lastUpdated
+		version = js.version
+
+		return Box({'date':date, 'message':msg, 'version':version})
+	

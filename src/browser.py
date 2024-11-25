@@ -9,6 +9,7 @@ import json
 import os
 import time
 import re
+import hashlib
 
 from logger import logger
 
@@ -29,6 +30,9 @@ class Browser:
 		self.chromeDriverBinary = self.config.chrome_driver
 		self.userAgent          = self.config.user_agent
 		self.hosts_404          = self.config.hosts_to_abort
+
+		if not 'hash_table' in self.config:
+			self.config['hash_table'] = {}
 
 		self.replaceRespData = Box({
 			'/games/6bfc0025-c148-4ff1-9bd0-89501c7c2d6a/build/v25/bundle.js':{
@@ -81,7 +85,8 @@ class Browser:
 		:rtype:     None
 		"""
 
-		if not request.path.endswith(self.logExcludeExt):		
+		ext = '.' + request.path.split('.')[-1]
+		if not ext in self.logExcludeExt:		
 			formatted_request = {
 				"url": request.url,
 				"method": request.method,
@@ -91,6 +96,19 @@ class Browser:
 				"body": request.body.decode('utf-8'),
 			}
 			logger.debug(json.dumps(formatted_request, indent=2))
+
+	def hashTable(self, request:Request) -> None:
+		
+		file_name = request.url.split("/")[-1]
+		if file_name.endswith('.js') or file_name.endswith('.html'):
+			hex_hash = hashlib.sha256(request.body).hexdigest()
+			logger.debug(f"{file_name}:{hex_hash}")
+
+			if file_name in self.config.hash_table:
+				if hex_hash != self.config.hash_table[file_name]:
+					logger.warning("Hash mismatch!")
+			else:	
+				self.config.hash_table[file_name] = hex_hash
 
 	def quit(self) -> None:
 		"""
@@ -161,6 +179,7 @@ class Browser:
 				request.abort()
 			else:
 				self.logResponse(request)
+				self.hashTable(request)
 
 			if '/api/game/v1/game-session/random-gift/' in request.path:
 				logger.info("Random gift request detected")

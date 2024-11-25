@@ -61,7 +61,7 @@ class Utill:
 		temp_file = "temp.bin"
 		try:
 			with open(temp_file, "wb") as f:
-				f.write(base64.b64decode(encoded_text))
+				f.write(base64.b64decode(encoded_text.strip().encode() + b'=='))
 
 			cmd = self.decryptCMD
 			cmd = cmd.format(text=encoded_text, binary=self.binary, password=password, temp_file=temp_file)

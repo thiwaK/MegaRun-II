@@ -7,7 +7,7 @@ class CustomFormatter(logging.Formatter):
 		timestamp = str(time.time_ns() // 1000000)
 		event = record.levelname
 		message = record.getMessage()
-		return f"[{timestamp}] [{event}] {message}"
+		return f"[{timestamp}] [{event[0]}] {message}"
 
 logger.setLevel(logging.DEBUG)
 

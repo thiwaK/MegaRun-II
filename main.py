@@ -4,20 +4,23 @@ import json
 import argparse
 
 sys.path.append('src')
-from wow import SupperApp as WOW
+from supper_app import SupperApp as WOW
 from config import Config
 from logger import logger
 from utill import Utill
 from browser import Browser
 from game import RaidShooter
+from game import FoodBlocks
 
 class Main:
 	"""Main class"""
 
-	def __init__(self, config_file='config.js', force_secondary_config=False, update_token=False):
-		
+	def __init__(self, config_file='config.js', force_secondary_config=False, update_token=False,
+		skip_warn=False):
+		self.skip_warn = skip_warn
 		self.configObj = Config(config_file)
 		self.config = self.configObj.load(force_secondary_config)
+		self.config.file = config_file
 		
 		self.utill  = Utill(self)
 		self.wow = WOW(self)
@@ -64,6 +67,7 @@ class Main:
 			exit()
 
 	def checkout(self):
+		#stage 1
 		r = self.wow.checkout()
 		if r == None:
 			exit()
@@ -73,6 +77,23 @@ class Main:
 		else:
 			logger.error("Unknown")
 			exit()
+
+		# stage 2
+		r = self.wow.checkUpdates()
+		if r == None:
+			logger.warning("Unable to get update info")
+		else:
+			if self.config.appVersion != r.version:
+				logger.warning("New update avilable")
+				tmp_ = f"\n  Current version: {self.config.appVersion}"
+				tmp_ += f"\n  Avilable version: {r.version}"
+				tmp_ += f"\n  Last update: {r.date}"
+				tmp_ += f"\n  Message: {r.message}"
+				tmp_ += f"\n"
+
+				print(tmp_)
+				if not self.skip_warn: exit()
+
 
 	def getMegaWasana(self):
 		if not self.wow.getMegaWasana():
@@ -186,23 +207,31 @@ class Main:
 	
 		self.browser = Browser(self.GAME_LAUNCHER_URL, self.GAME_LAUNCHER_TOKEN, self)
 		self.gameArenaConfig, self.currentGame = self.browser.launch()
+		self.gamePlaying = None
 
-		self.raidShooter = RaidShooter(self, self.currentGame)
-		self.raidShooter.getInfo()
-		
-		while True:
-			self.raidShooter.randomGifts()
-			self.raidShooter.getInfo()
+		if self.currentGame.game.name == "Raid Shooter":
+			self.gamePlaying = RaidShooter(self, self.currentGame)
+			self.gamePlaying.getInfo()
+			
+		elif self.currentGame.game.name == "Food Blocks":
+			self.gamePlaying = FoodBlocks(self, self.currentGame)
+			self.gamePlaying.getInfo()
+
+		while self.gamePlaying != None:
+			self.gamePlaying.randomGifts()
+			self.gamePlaying.getInfo()
+			self.gamePlaying.printx()
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description="MeagaRun II Client")
 	parser.add_argument("--config", "-c", type=str, default='config.js', help="Specify the path to the configuration file.")
-
-	parser.add_argument("--secondary-config", action="store_true", help="Force load secondary configuration.")
+	parser.add_argument("--secondary-config", "-c2", action="store_true", help="Force load secondary configuration.")
 	parser.add_argument("--update-token", action="store_true", help="Update authentication token.")
+	parser.add_argument("--skip-warn", action="store_true", help="Force contune in warning situation.")
 
 	args = parser.parse_args()
-	main = Main(config_file=args.config, force_secondary_config=args.secondary_config, update_token=args.update_token)
+	main = Main(config_file=args.config, force_secondary_config=args.secondary_config, update_token=args.update_token,
+		skip_warn=args.skip_warn)
 	
 	try:
 		main.start()
