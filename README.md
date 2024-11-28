@@ -23,9 +23,9 @@ This app was developed for fun and educational purposes. **DO NOT** use it for a
 
 The first version of `MegaRun` was developed using the `Unity` game engine, where the scripting language of choice was `C#`. The app relied on the `Assembly-CSharp.dll` file for its core logic. Despite its obfuscated function names filled with random "A"s, moders found it relatively easy to manipulate. They took advantage of this simplicity, modifying the original app to unlock various _"abilities"_. However, these modified versions quickly spread, leading to unintended consequences. The app was terminated due to the widespread misuse of these mods, marking an abrupt end to the original `MegaRun`.
 
-In response, _"the app owner"_ decided to give a second chance to its users. But this time with enhanced security measures. The new version, known as `WOW`, was developed in `React Native` with the `Hermes` engine, making it considerably harder to reverse engineer. This updated framework presented significant obstacles for those who attempted to modify it. But as with any challenge, those with enough creativity and persistence would inevitably find ways to push the boundaries.
+Later, _"the app owner"_ decided to give a second chance to its authentic users. But this time with enhanced security measures. The new version, known as `WOW`, was developed in `React Native` with the `Hermes` engine, making it considerably harder to reverse engineer. This updated framework presented significant obstacles for those who attempted to modify it. But as with any challenge, those with enough creativity and persistence would inevitably find ways to push the boundaries.
 
-When I began this project, it was purely for fun and educational purposes. However, as I delved deeper, I found that achieving my desired results became increasingly difficult. Weeks passed without clear direction, but the more challenging it became, the more obsessed I grew with finding a solution. Despite the frustration, each setback fuelled my determination to explore, to test, and to break through barriers that seemed unbreakable. The journey itself became the reward, a relentless pursuit of understanding and mastery.
+I began this project for fun and educational purposes. However, as I delved deeper, I found that achieving my desired results became increasingly difficult. Weeks passed without clear direction, but the more challenging it became, the more obsessed I grew with finding a solution. Despite the frustration, each setback fuelled my determination to explore, to test, and to break through barriers that seemed unbreakable. The journey itself became the reward, a relentless pursuit of understanding and mastery.
 
 I published this repository to offer some comfort to those on similar journeys, grappling with the same obstacles. If you possess the strength, skills, and determination, you’ll uncover the missing pieces of this puzzle on your own. I won’t be providing hints or guidance, as I fear this app could meet the same fate as its predecessor. _The journey may be challenging, but for those willing to persist, the answers await_.
 
@@ -50,12 +50,14 @@ I published this repository to offer some comfort to those on similar journeys, 
   python main.py [OPTIONS]
 ```
 
-| Option               | Description                                                                                                                  |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--config`,`-c`      | Specify the path to the configuration file. By default, it uses `config.js`                                                  |
-| `--secondary-config`,`-c2` | Force the client to load the secondary configuration. Overrides the primary configuration with a secondary setup.            |
-| `--update-token`     | Update the authentication token used by the client. Useful for refreshing or regenerating the client’s authentication token. |
-| `--skip-warn`     | Force app to continue over warnings. |
+| Option               | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| `--config`,`-c`      | Specify the path to the configuration file. Defaults to `config.js`        |
+| `--secondary-config`,`-c2` | Load a secondary configuration file, overriding the primary configuration. |
+| `--update-token`     | Refresh or regenerate the client’s authentication token.                   |
+| `--skip-warn`     | Continue execution despite warnings.                                       |
+| `--browser-mode` | Allow gameplay to continue in the browser.                                 |
+| `--ignore-chance-limit` | Prevent the app from auto-terminating when chances are over.               |
 
 ---
 ### 🚀 Contribution

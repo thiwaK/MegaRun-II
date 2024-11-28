@@ -35,17 +35,18 @@ class Browser:
 			self.config['hash_table'] = {}
 
 		self.replaceRespData = Box({
-			'/games/6bfc0025-c148-4ff1-9bd0-89501c7c2d6a/build/v25/bundle.js':{
-				'headers': {'Content-Type': 'application/javascript'},
-				'status_code': 200,
-				'file': 'bundle_cake.js',
-				'read_mode': 'r'
-			},
 
 			'/games/9482808f-72c3-43a5-96c4-38c3d3a7673e/build/v19/bundle.js':{
 				'headers': {'Content-Type': 'application/javascript'},
 				'status_code': 200,
-				'file': 'bundle_raidshooter.js',
+				'file': 'bundle_raidshooter_debug.js',
+				'read_mode': 'r'
+			},
+
+			'/games/907bd637-30c0-435c-af6a-ee2efc4c115a/build/v24/bundle.js':{
+				'headers': {'Content-Type': 'application/javascript'},
+				'status_code': 200,
+				'file': 'bundle_foodblocks_debug.js',
 				'read_mode': 'r'
 			},
 
@@ -135,7 +136,7 @@ class Browser:
 			del request.headers[k]
 			request.headers[k] = v
 
-	def modifyResponse(self, file:str, headers:dict, status_code:int, read_mode:str) -> None:
+	def modifyResponse(self, file:str, headers:dict, status_code:int, read_mode:str, request) -> None:
 		"""
 		craft custom reponse with custom content for the request
 		
@@ -161,6 +162,8 @@ class Browser:
 				headers=headers,
 				body=new_body
 			)
+		else:
+			logger.warning("File not found")
 
 	def requestInterceptor(self, request:Request) -> None:
 			"""
@@ -195,7 +198,9 @@ class Browser:
 						exit()
 
 					self.currentGame['sessionId'] = sessionId
-					self.quit()
+					
+					if not self.config.keep_play_in_browser: 
+						self.quit()
 				else:
 					logger.info("No Session Id found.")
 					logger.error("Unable to continue")
@@ -211,7 +216,7 @@ class Browser:
 				if request.path.endswith(k):
 					logger.info("Replace response content")
 					logger.debug(f"URL: {request.url}")
-					self.modifyResponse(v.file, v.headers, v.status_code, v.read_mode)
+					self.modifyResponse(v.file, v.headers, v.status_code, v.read_mode, request)
 
 
 			for item in self.gameURLList:

@@ -28,7 +28,7 @@ class Utill:
 		:returns:   encrypted text as b64
 		:rtype:     str
 		"""
-		logger.debug(":encrypt:")
+		# logger.debug(":encrypt:")
 		try:
 			cmd = self.encryptCMD
 			cmd = cmd.format(text=text, binary=self.binary, password=password)
@@ -57,7 +57,7 @@ class Utill:
 		:returns:   decrypted value as text
 		:rtype:     str
 		"""
-		logger.debug(":decrypt:")
+		# logger.debug(":decrypt:")
 		temp_file = "temp.bin"
 		try:
 			with open(temp_file, "wb") as f:

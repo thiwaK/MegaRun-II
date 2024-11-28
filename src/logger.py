@@ -20,3 +20,5 @@ logFile = logging.FileHandler("megarun_2.log")
 logFile.setLevel(logging.DEBUG)
 logFile.setFormatter(CustomFormatter())
 logger.addHandler(logFile)
+
+

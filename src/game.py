@@ -4,6 +4,8 @@ import json
 from logger import logger
 import time
 import random
+import subprocess
+import os
 
 class Game:
 	"""Games"""
@@ -19,6 +21,9 @@ class Game:
 		self.data_got = 0
 		self.data_left = 0
 		self.past_gifts = ""
+
+		self.staticNumber = random.randint(1, 9)
+		self.giftCount = 1
 
 		self.firstPrint = True
 
@@ -112,9 +117,9 @@ class Game:
 			if js['statusInfo'] == "OK":
 				logger.debug(js.data)
 
-				if js.data.consumed_chances >= js.data.daily_winning_chances:
+				if (not self.config.continue_on_chances_over) and js.data.consumed_chances >= js.data.daily_winning_chances:
 					logger.info("No chances left")
-					logger.warning("Terminating")
+					logger.warning("Self terminating")
 					exit()
 				
 				self.chances_got = js.data.consumed_chances
@@ -124,23 +129,108 @@ class Game:
 				self.past_gifts = " ".join([str(x) for x in self.lastGifts])
 
 				# logger.info(f"Chances {js.data.consumed_chances}/{js.data.daily_winning_chances} Data {js.data.won_data}/{js.data.remaining_data}")
+		
+		elif int(resp.status_code) == 502:
+			logger.warning("Bad Gateway")
+			return
 		else:
 			logger.error(resp.status_code)
 			logger.error(resp.read())
 
 	def printx(self):
+
+		def eraseLines(n):
+			for _ in range(n):
+				print("\033[F\033[K", end="")
+
 		msg =   f'Chances : {self.chances_got} out of {self.chances_left}\n'
-		msg +=  f'Data    : {self.data_got} out of {self.data_left}\n'
+		msg +=  f'Data    : {self.data_got} out of {int(self.data_left) + int(self.data_got)}\n'
 		msg +=  f'Gifts   : [{self.past_gifts}]\n'
 
 		if self.firstPrint:
 			self.firstPrint = False
-			print(f"{msg}")
+			print(f"{msg}", end="")
 		else:
-			print(f"\r\r\r{msg}", end="", flush=True)
+			eraseLines(4)
+			print(f"{msg}", end="", flush=True)
+
+	def giftResponseParser(self, response):
+
+		msg = ""
+		if int(response.status_code) == 200:
+			res = response.read()
+			js = json.loads(res)
+			if js['statusInfo'] == "OK":
+				logger.debug(js['data'])
+
+				self.lastGifts = self.lastGifts[1:]
+				self.lastGifts.append(str(js['data']['amount']))
+
+				if self.lastGifts.count('*') == 0 and sum([int(str(x)) for x in self.lastGifts if str(x).isdecimal()]) < 1:
+					logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
+		
+		elif int(resp.status_code) == 502:
+			logger.warning("Bad Gateway")
+			self.lastGifts.append('@')
+			return
+		else:
+			logger.debug(response.status_code)
+			logger.debug(response.read())
+			exit()
+
+	def getRandomGift(self, body, headers):
+		try:
+			resp = self.conn.request(method='POST', url=f'/api/game/v1/game-session/random-gift/{self.gameConfig.sessionId}/1', data=body, headers=headers)
+		except httpx.ReadTimeout as e:
+			logger.debug("Read Timeout")
+			self.lastGifts.append('#')
+			return
+		except httpx.ConnectTimeout:
+			logger.debug("Connect Timeout")
+			self.lastGifts.append('#')
+			return
+		except httpx.ConnectError:
+			logger.debug("Connect Error")
+			self.lastGifts.append('#')
+			return
+
+		self.giftResponseParser(resp)
+
+	def getGiftKey(self):
+		game = None
+		if self.gameConfig.game.name == "Raid Shooter": game = "RS"
+		elif self.gameConfig.game.name == "Food Blocks": game = "FB"
+		elif self.gameConfig.game.name == "Ghost Hunter": game = "FB"
+		elif self.gameConfig.game.name == "Cake Zone": game = "FB"
+		elif self.gameConfig.game.name == "Mega Run 2": game = "MR"
+		else: 
+			logger.error(f"Invalid game: {self.gameConfig.game.name}")
+			exit()
+		try:
+			command = ["node", r"bin\keygen.js", str(self.staticNumber),
+			str(self.giftCount), game]
+			result = subprocess.run(command, capture_output=True, text=True, shell=True)
+			output = result.stdout.strip()
+			error = result.stderr.strip()
+
+			if error:
+				logger.error("subprocess error: " + error)
+			if output:
+				key = output
+
+			logger.debug(f"gift key: {self.staticNumber} {self.giftCount} {game} -> {key}")
+			return key
+
+		except subprocess.CalledProcessError as e:
+			logger.error(e)
+			return None
+
+		except UnicodeDecodeError as e:
+			logger.error(e)
+			return None
 
 class RaidShooter(Game):
-	"""RaidShooter"""
+	"""Raid Shooter"""
 
 	def __init__(self, instance, game_config):
 		super().__init__(instance, game_config)
@@ -166,6 +256,8 @@ class RaidShooter(Game):
 	def randomGifts(self):
 		logger.debug(":randomGifts:")
 
+		self.giftCount += 1
+
 		waiting_time = [random.randint(self.MIN_WAITING_TIME, self.MAX_WAITING_TIME) for _ in range(self.MAX_SHOTS)]
 		logger.debug(f"Waiting time {waiting_time}")
 		time.sleep(sum(waiting_time))
@@ -185,7 +277,11 @@ class RaidShooter(Game):
 		body = json.dumps(body)
 
 		headers = self.headers
-		headers.update({'Idempotency-Key': random.choice(self.config.idempotency_keys_RaidShooter),
+		giftKey = self.getGiftKey()
+		if giftKey == None:
+			logger.error(f"Invalid giftKey: {giftKey}")
+			exit()
+		headers.update({'Idempotency-Key': giftKey,
 		'Content-Type': 'application/json',
 		'sec-ch-ua-mobile': '?1',
 		'Accept': '*/*',
@@ -203,41 +299,11 @@ class RaidShooter(Game):
 		# 	return
 
 		self.previous_gift = time.time()
-		try:
-			resp = self.conn.request(method='POST', url=f'/api/game/v1/game-session/random-gift/{self.gameConfig.sessionId}/1', data=body, headers=headers)
-		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
-			self.lastGifts.append('#')
-			return
-		except httpx.ConnectTimeout:
-			logger.debug("Connect Timeout")
-			self.lastGifts.append('#')
-			return
-		except httpx.ConnectError:
-			logger.debug("Connect Error")
-			self.lastGifts.append('#')
-			return
-
-
-		msg = ""
-		if int(resp.status_code) == 200:
-			res = resp.read()
-			js = json.loads(res)
-			if js['statusInfo'] == "OK":
-				logger.debug(js['data'])
-
-				self.lastGifts = self.lastGifts[1:]
-				self.lastGifts.append(js['data']['amount'])
-
-				if self.lastGifts.count('*') == 0 and sum([x for x in self.lastGifts if x.isdecimal()]) < 1:
-					logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
-		else:
-			logger.debug(resp.status_code)
-			logger.debug(resp.read())
-			exit()
+		
+		self.getRandomGift(body, headers)
 
 class FoodBlocks(Game):
-	"""FoodBlocks"""
+	"""Food Blocks"""
 
 	def __init__(self, instance, game_config):
 		super().__init__(instance, game_config)
@@ -270,6 +336,8 @@ class FoodBlocks(Game):
 	def randomGifts(self):
 		logger.debug(":randomGifts:")
 
+		self.giftCount += 1
+
 		random_score = random.randint(self.MIN_SCORE, self.MAX_SCORE)
 		waiting_time = self.map_score_to_time(random_score)
 
@@ -285,7 +353,11 @@ class FoodBlocks(Game):
 		body = json.dumps(body)
 
 		headers = self.headers
-		headers.update({'Idempotency-Key': random.choice(self.config.idempotency_keys_FoodBlocks),
+		giftKey = self.getGiftKey()
+		if getGiftKey == None:
+			logger.error(f"Invalid giftKey: {giftKey}")
+			exit()
+		headers.update({'Idempotency-Key': giftKey,
 		'Content-Type': 'application/json',
 		'sec-ch-ua-mobile': '?1',
 		'Accept': '*/*',
@@ -303,38 +375,8 @@ class FoodBlocks(Game):
 		# 	return
 
 		self.previous_gift = time.time()
-		try:
-			resp = self.conn.request(method='POST', url=f'/api/game/v1/game-session/random-gift/{self.gameConfig.sessionId}/1', data=body, headers=headers)
-		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
-			self.lastGifts.append('#')
-			return
-		except httpx.ConnectTimeout:
-			logger.debug("Connect Timeout")
-			self.lastGifts.append('#')
-			return
-		except httpx.ConnectError:
-			logger.debug("Connect Error")
-			self.lastGifts.append('#')
-			return
 
-
-		msg = ""
-		if int(resp.status_code) == 200:
-			res = resp.read()
-			js = json.loads(res)
-			if js['statusInfo'] == "OK":
-				logger.debug(js['data'])
-
-				self.lastGifts = self.lastGifts[1:]
-				self.lastGifts.append(js['data']['amount'])
-
-				if self.lastGifts.count('*') == 0 and sum([x for x in self.lastGifts if x.isdecimal()]) < 1:
-					logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
-		else:
-			logger.debug(resp.status_code)
-			logger.debug(resp.read())
-			exit()
+		self.getRandomGift(body, headers)
 
 		
 

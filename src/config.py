@@ -54,9 +54,32 @@ class Config:
 		data_pri = {}
 		data_out = {}
 
+		printx = {"printx": {
+			"game": {
+				"name":"None",
+				"uuid":"None",
+				"session":"None",
+			},
+			"gift": {
+				"remains":"None",
+				"total":"None",
+				"history":"None",
+				"next": "None"
+			},
+			"log": [
+			
+			],
+			"stat": {
+				"total_gift_req":"100",
+				"failed_gift_req":"10",
+				"total_run_time": "00:05:00"
+			}
+		}}
+
 		if os.path.isfile(self.configFile):
 			with open(self.configFile, 'r') as file:
 				data_pri = json.load(file)
+				data_pri.update(printx)
 				self.config = Box(data_pri)
 
 		if 'secondary_config' in data_pri:
