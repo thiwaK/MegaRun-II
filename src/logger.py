@@ -11,10 +11,10 @@ class CustomFormatter(logging.Formatter):
 
 logger.setLevel(logging.DEBUG)
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logging.INFO)
-consoleHandler.setFormatter(CustomFormatter())
-logger.addHandler(consoleHandler)
+# consoleHandler = logging.StreamHandler()
+# consoleHandler.setLevel(logging.INFO)
+# consoleHandler.setFormatter(CustomFormatter())
+# logger.addHandler(consoleHandler)
 
 logFile = logging.FileHandler("megarun_2.log")
 logFile.setLevel(logging.DEBUG)

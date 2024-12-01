@@ -11,20 +11,22 @@ import time
 import re
 import hashlib
 
-from logger import logger
-
 class Browser:
 	"""Browser manipulation"""
 	
-	def __init__(self, url: str, token:str, instance) -> None:
+	def __init__(self, instance) -> None:
 
-		self.url             = url
-		self.token           = token
-		self.LOOP            = True
-		self.gameArenaConfig = None
-		self.gameURLList     = {}
-		self.currentGame     = Box({})
 		self.config          = instance.config
+		self.url             = self.config.GAME_LAUNCHER_URL
+		self.token           = self.config.GAME_LAUNCHER_TOKEN
+		self.LOOP            = True
+		self.gameURLList     = {}
+		self.ui              = instance.ui
+		self.logger          = instance.logger
+
+		self.config.gameArena   = None
+		self.config.currentGame = Box({})
+		
 
 		self.logExcludeExt      = self.config.ext_to_exclude_log_req
 		self.chromeDriverBinary = self.config.chrome_driver
@@ -96,18 +98,18 @@ class Browser:
 				"params": request.params,
 				"body": request.body.decode('utf-8'),
 			}
-			logger.debug(json.dumps(formatted_request, indent=2))
+			self.logger.debug(json.dumps(formatted_request, indent=2))
 
 	def hashTable(self, request:Request) -> None:
 		
 		file_name = request.url.split("/")[-1]
 		if file_name.endswith('.js') or file_name.endswith('.html'):
 			hex_hash = hashlib.sha256(request.body).hexdigest()
-			logger.debug(f"{file_name}:{hex_hash}")
+			self.logger.debug(f"{file_name}:{hex_hash}")
 
 			if file_name in self.config.hash_table:
 				if hex_hash != self.config.hash_table[file_name]:
-					logger.warning("Hash mismatch!")
+					self.logger.warning("Hash mismatch!")
 			else:	
 				self.config.hash_table[file_name] = hex_hash
 
@@ -163,7 +165,7 @@ class Browser:
 				body=new_body
 			)
 		else:
-			logger.warning("File not found")
+			self.logger.warning("File not found")
 
 	def requestInterceptor(self, request:Request) -> None:
 			"""
@@ -178,50 +180,50 @@ class Browser:
 			self.injectHeaders(request, self.headers_to_inject)
 
 			if request.host in self.hosts_404:
-				logger.debug(f"Aborted: {request.url}")
+				self.logger.debug(f"Aborted: {request.url}")
 				request.abort()
 			else:
 				self.logResponse(request)
 				self.hashTable(request)
 
 			if '/api/game/v1/game-session/random-gift/' in request.path:
-				logger.info("Random gift request detected")
+				self.logger.info("Random gift request detected")
 
 				pattern = r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 				match = re.search(pattern, request.path)
 
 				if match:
 					sessionId = match.group(0)
-					logger.info("Session Id: " + sessionId)
+					self.logger.info("Session Id: " + sessionId)
 					if sessionId == None or sessionId == "":
-						logger.error("Unable to continue")
+						self.logger.error("Unable to continue")
 						exit()
 
-					self.currentGame['sessionId'] = sessionId
+					self.config.currentGame['sessionId'] = sessionId
 					
 					if not self.config.keep_play_in_browser: 
 						self.quit()
 				else:
-					logger.info("No Session Id found.")
-					logger.error("Unable to continue")
+					self.logger.info("No Session Id found.")
+					self.logger.error("Unable to continue")
 					exit()
 
-				self.currentGame['score'] = json.loads(request.body)['score']
+				self.config.currentGame['score'] = json.loads(request.body)['score']
 
-				___x = f"{request.headers['Idempotency-Key']} {self.currentGame['score']} {int(time.time())}"
-				logger.debug(___x)
+				___x = f"{request.headers['Idempotency-Key']} {self.config.currentGame['score']} {int(time.time())}"
+				self.logger.debug(___x)
 
 
 			for k,v in self.replaceRespData.items():
 				if request.path.endswith(k):
-					logger.info("Replace response content")
-					logger.debug(f"URL: {request.url}")
+					self.logger.info("Replace response content")
+					self.logger.debug(f"URL: {request.url}")
 					self.modifyResponse(v.file, v.headers, v.status_code, v.read_mode, request)
 
 
 			for item in self.gameURLList:
 				if item in request.url or request.url == item:
-					logger.info("New game init detected")
+					self.logger.info("New game init detected")
 
 					game = Box(self.gameURLList[item])
 					gameID = game.id
@@ -235,9 +237,11 @@ class Browser:
 					gameMax_difficulty_level = game.max_difficulty_level
 
 					__tmp__ = f"\n==========[Initiating New Game]==========\n\tGame:{gameName}\n\tID:{gameID}\n\tUUID:{gameUUID}\n\tState Count:{gameStateCount}\n\tPublished:{gamePublished}"
-					logger.info(__tmp__)
+					self.logger.debug(__tmp__)
 
-					self.currentGame['game'] = game
+					self.config.currentGame['game'] = game
+
+					self.ui.data["Game Info"]["Name   "] = game.name
 		
 	def responseInterceptor(self, request:Request, response:Response) -> None:
 		"""
@@ -255,22 +259,22 @@ class Browser:
 			
 			js_ = json.loads(response.body)
 			if js_['statusInfo'] == 'OK' and js_['success']:
-				logger.info("Game arena configuration loaded")
-				self.gameArenaConfig = Box(js_)
+				self.logger.info("Game arena configuration loaded")
+				self.config.gameArena = Box(js_)
 
-				for item in self.gameArenaConfig.data.game_list:
+				for item in self.config.gameArena.data.game_list:
 					if item.url not in self.gameURLList:
 						self.gameURLList[item.url] = item
 
-				self.currentGame['access_token'] = self.gameArenaConfig.data.access_token
-				self.currentGame['refresh_token'] = self.gameArenaConfig.data.refresh_token
+				self.config.currentGame['access_token'] = self.config.gameArena.data.access_token
+				self.config.currentGame['refresh_token'] = self.config.gameArena.data.refresh_token
 
-				logger.debug("gameURLList")
-				logger.debug(self.gameURLList)
+				self.logger.debug("gameURLList")
+				self.logger.debug(self.gameURLList)
 
 			else:
-				logger.error("gameArenaConfig: Unknown")
-				logger.error(json.dumps(js_, indent=2))
+				self.logger.error("gameArenaConfig: Unknown")
+				self.logger.error(json.dumps(js_, indent=2))
 				driver.quit()
 				exit()
 
@@ -285,7 +289,7 @@ class Browser:
 		:returns:   None
 		:rtype:     None
 		"""
-		logger.info("Launching browser")
+		self.logger.info("Launching browser")
 
 		url = f"{self.url}?token={self.token}"
 
@@ -302,7 +306,7 @@ class Browser:
 		driver.request_interceptor = self.requestInterceptor
 		driver.response_interceptor = self.responseInterceptor
 
-		logger.debug("URL: " + url)
+		self.logger.debug("URL: " + url)
 		driver.get(url)
 
 		# input()
@@ -310,8 +314,8 @@ class Browser:
 			time.sleep(1)
 
 		driver.quit()
-		logger.info("Leaving browser")
+		self.logger.info("Leaving browser")
 
-		return self.gameArenaConfig, self.currentGame
+		return self.config
 
 

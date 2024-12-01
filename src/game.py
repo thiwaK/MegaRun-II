@@ -10,9 +10,10 @@ import os
 class Game:
 	"""Games"""
 
-	def __init__(self, instance, game_config):
+	def __init__(self, instance):
+		self.ui = instance.ui
 		self.config = instance.config
-		self.gameConfig = game_config
+		self.gameConfig = instance.config.currentGame
 		self.noGiftsWarnLimit = 15
 		self.lastGifts = ['*' for x in range(self.noGiftsWarnLimit)]
 
@@ -116,11 +117,6 @@ class Game:
 			js = Box(json.loads(res))
 			if js['statusInfo'] == "OK":
 				logger.debug(js.data)
-
-				if (not self.config.continue_on_chances_over) and js.data.consumed_chances >= js.data.daily_winning_chances:
-					logger.info("No chances left")
-					logger.warning("Self terminating")
-					exit()
 				
 				self.chances_got = js.data.consumed_chances
 				self.chances_left = js.data.daily_winning_chances
@@ -128,8 +124,17 @@ class Game:
 				self.data_left = js.data.remaining_data
 				self.past_gifts = " ".join([str(x) for x in self.lastGifts])
 
-				# logger.info(f"Chances {js.data.consumed_chances}/{js.data.daily_winning_chances} Data {js.data.won_data}/{js.data.remaining_data}")
+				self.ui.data["Game Info"]["Chances"] = f"{self.chances_got} ({self.chances_left})"
+				self.ui.data["Game Info"]["Reward "] = f"{self.data_got} ({int(self.data_left) + int(self.data_got)})"
+
+				logger.debug(f"Chances {js.data.consumed_chances}/{js.data.daily_winning_chances} Data {js.data.won_data}/{js.data.remaining_data}")
 		
+				if (not self.config.continue_on_chances_over) and js.data.consumed_chances >= js.data.daily_winning_chances:
+					logger.info("No chances left")
+					logger.warning("Self terminating")
+					exit()
+				
+
 		elif int(resp.status_code) == 502:
 			logger.warning("Bad Gateway")
 			return
@@ -166,10 +171,12 @@ class Game:
 				self.lastGifts = self.lastGifts[1:]
 				self.lastGifts.append(str(js['data']['amount']))
 
+				self.ui.gift_history.append(str(js['data']['amount']))
+
 				if self.lastGifts.count('*') == 0 and sum([int(str(x)) for x in self.lastGifts if str(x).isdecimal()]) < 1:
 					logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
 		
-		elif int(resp.status_code) == 502:
+		elif int(response.status_code) == 502:
 			logger.warning("Bad Gateway")
 			self.lastGifts.append('@')
 			return
@@ -232,11 +239,11 @@ class Game:
 class RaidShooter(Game):
 	"""Raid Shooter"""
 
-	def __init__(self, instance, game_config):
-		super().__init__(instance, game_config)
+	def __init__(self, instance):
+		super().__init__(instance)
 
 		self.config = instance.config
-		self.gameConfig = game_config
+		self.gameConfig = instance.config.currentGame
 
 		self.previous_gift = time.time()
 		self.SCORE = self.gameConfig.score
@@ -259,6 +266,9 @@ class RaidShooter(Game):
 		self.giftCount += 1
 
 		waiting_time = [random.randint(self.MIN_WAITING_TIME, self.MAX_WAITING_TIME) for _ in range(self.MAX_SHOTS)]
+		self.ui.next_beginning = int(time.time())
+		self.ui.next_end = int(time.time()) + sum(waiting_time)
+
 		logger.debug(f"Waiting time {waiting_time}")
 		time.sleep(sum(waiting_time))
 
@@ -305,11 +315,12 @@ class RaidShooter(Game):
 class FoodBlocks(Game):
 	"""Food Blocks"""
 
-	def __init__(self, instance, game_config):
-		super().__init__(instance, game_config)
+	def __init__(self, instance):
+		super().__init__(instance)
 
 		self.config = instance.config
-		self.gameConfig = game_config
+		self.ui = instance.ui
+		self.gameConfig = instance.config.currentGame
 
 		self.previous_gift = time.time()
 		self.SCORE = self.gameConfig.score
@@ -342,6 +353,9 @@ class FoodBlocks(Game):
 		waiting_time = self.map_score_to_time(random_score)
 
 		logger.debug(f"Waiting time {waiting_time}")
+
+		self.ui.next_beginning = int(time.time())
+		self.ui.next_end = int(time.time()) + waiting_time
 		time.sleep(waiting_time)
 		logger.debug(f"Random score {random_score}")
 
@@ -354,9 +368,10 @@ class FoodBlocks(Game):
 
 		headers = self.headers
 		giftKey = self.getGiftKey()
-		if getGiftKey == None:
+		if giftKey == None:
 			logger.error(f"Invalid giftKey: {giftKey}")
 			exit()
+
 		headers.update({'Idempotency-Key': giftKey,
 		'Content-Type': 'application/json',
 		'sec-ch-ua-mobile': '?1',

@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json
 import os
 from logger import logger
-from utill import Utill
+from utils import Utils
 
 class Config:
 	"""Configuration handler"""
@@ -83,14 +83,14 @@ class Config:
 				self.config = Box(data_pri)
 
 		if 'secondary_config' in data_pri:
-			self.utill = Utill(self)
+			self.utils = Utils(self)
 			self.secondaryConfig = data_pri['secondary_config']
 
 			if os.path.isfile(self.secondaryConfig):
 				tree = ET.parse(self.secondaryConfig)
 				root = tree.getroot()
 				for child in root:
-					d = self.utill.decrypt(child.text, self.config.config_key)#encryptionKey
+					d = self.utils.decrypt(child.text, self.config.config_key)#encryptionKey
 					if d:
 						data_sec[child.attrib['name']] = d[1:-1]
 					else:

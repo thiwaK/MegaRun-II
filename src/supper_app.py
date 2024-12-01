@@ -19,7 +19,7 @@ class Signin:
 		
 
 		self.config = instance.config
-		self.utill = instance.utill
+		self.utils = instance.utils
 
 		self.chromeDriverBinary = self.config.chrome_driver
 		self.userAgent          = self.config.user_agent
@@ -166,7 +166,7 @@ class AppStatus:
 	def __init__(self, instance):
 
 		self.config = instance.config
-		self.utill = instance.utill
+		self.utils = instance.utill
 		self.conn = httpx.Client(base_url='https://codepush.appcenter.ms', http2=False)
 		self.headers = {
 			'accept': 'application/json',
@@ -199,7 +199,7 @@ class SupperApp:
 	def __init__(self, instance):
 
 		self.config = instance.config
-		self.utill = instance.utill
+		self.utils = instance.utils
 		self.conn = httpx.Client(base_url='https://api.wow.lk', http2=True)
 		self.headers = {
 			"accept": "application/json, text/plain, */*",
@@ -262,7 +262,7 @@ class SupperApp:
 	def userUpdate(self):
 		logger.info(":userUpdate:")
 		body = json.dumps({"msisdn":self.config.mobileNumber, "defaultLanguage":self.config.language})
-		body = self.utill.encrypt(body, self.config.encryptionKey)
+		body = self.utils.encrypt(body, self.config.encryptionKey)
 
 		resp = self.conn.request(method='PUT', url='/superapp-user-profile-service/v2/user/update/' + self.config.mobileNumber, data=body, headers=self.headers)
 		js = self.validateResponse(resp)
@@ -388,7 +388,7 @@ class SupperApp:
 		body = json.dumps({"appId":"MEGA_GAMES","msisdn":self.config.mobileNumber,"deviceId":self.config.device_id,
 			"extraData":{"mdm":None,"cmpID":None,"dstn":None},"isAuthenticated":True})
 
-		body = self.utill.encrypt(body.replace('\n', ''), self.config.encryptionKey).replace('\n', '')
+		body = self.utils.encrypt(body.replace('\n', ''), self.config.encryptionKey).replace('\n', '')
 		body = {"data": body}
 
 		self.headers.update({'ect': 'true'})
@@ -416,7 +416,7 @@ class SupperApp:
 		logger.info(":updateFCMToken:")
 
 		body = json.dumps({
-			"fcmToken": self.utill.encrypt(self.config.fcmToken, configKey),
+			"fcmToken": self.utils.encrypt(self.config.fcmToken, configKey),
 			"msisdn": self.config.mobileNumber
 		})
 		resp = self.conn.request(method='POST', url='/superapp-notification-service/v2/fcmToken/storeMobileNumber', data=body, headers=self.headers)

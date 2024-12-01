@@ -5,7 +5,7 @@ from logger import logger
 import datetime
 import base64
 
-class Utill:
+class Utils:
 	"""
 	Utility container
 	"""
