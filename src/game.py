@@ -1,7 +1,7 @@
 from box import Box
 import httpx
 import json
-from logger import logger
+# from logger import logger
 import time
 import random
 import subprocess
@@ -12,6 +12,7 @@ class Game:
 
 	def __init__(self, instance):
 		self.ui = instance.ui
+		self.logger = instance.logger
 		self.config = instance.config
 		self.gameConfig = instance.config.currentGame
 		self.noGiftsWarnLimit = 15
@@ -47,16 +48,16 @@ class Game:
 
 	def highScore(self):
 		
-		logger.info(":highScore:")
+		self.self.logger.info(":highScore:")
 		headers = self.headers
 
 		try:
 			resp = self.conn.request(method='GET', url=f'/api/game/v1/leaderboard/global/high-score/{self.gameConfig.game.uuid}', headers=headers)
 		except httpx.ConnectError:
-			logger.debug("Connect Error")
+			self.self.logger.debug("Connect Error")
 			return
 		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
+			self.self.logger.debug("Read Timeout")
 			return
 
 
@@ -64,26 +65,26 @@ class Game:
 			res = resp.read()
 			js = json.loads(res)
 			if js['statusInfo'] == "OK":
-				logger.debug(js['data'])
+				self.self.logger.debug(js['data'])
 		else:
-			logger.error(resp.status_code)
-			logger.error(resp.read())
+			self.self.logger.error(resp.status_code)
+			self.self.logger.error(resp.read())
 		
 	def assets(self):
 		
-		logger.info(":assets:")
+		self.logger.info(":assets:")
 		headers = self.headers
 
 		try:
 			resp = self.conn.request(method='GET', url=f'/api/game/v1/asset/{self.gameConfig.game.uuid}', headers=headers)
 		except httpx.ConnectError:
-			logger.debug("Connect Error")
+			self.logger.debug("Connect Error")
 			return
 		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
+			self.logger.debug("Read Timeout")
 			return
 		except httpx.ConnectTimeout:
-			logger.debug("Connect Timeout")
+			self.logger.debug("Connect Timeout")
 			return
 		
 
@@ -91,32 +92,32 @@ class Game:
 			res = resp.read()
 			js = json.loads(res)
 			if js['statusInfo'] == "OK":
-				logger.debug(js['data'])
+				self.logger.debug(js['data'])
 		else:
-			logger.error(resp.status_code)
-			logger.error(resp.read())
+			self.logger.error(resp.status_code)
+			self.logger.error(resp.read())
 		
 	def getInfo(self):
 
-		logger.debug(":getInfo:")
+		self.logger.debug(":getInfo:")
 		headers = self.headers
 		try:
 			resp = self.conn.request(method='GET', url=f'api/game/v1/profile/data', headers=headers)
 		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
+			self.logger.debug("Read Timeout")
 			return
 		except httpx.ConnectError:
-			logger.debug("Connect Error")
+			self.logger.debug("Connect Error")
 			return
 		except httpx.ConnectTimeout:
-			logger.debug("Connect Timeout")
+			self.logger.debug("Connect Timeout")
 			return
 		
 		if int(resp.status_code) == 200:
 			res = resp.read()
 			js = Box(json.loads(res))
 			if js['statusInfo'] == "OK":
-				logger.debug(js.data)
+				self.logger.debug(js.data)
 				
 				self.chances_got = js.data.consumed_chances
 				self.chances_left = js.data.daily_winning_chances
@@ -127,20 +128,20 @@ class Game:
 				self.ui.data["Game Info"]["Chances"] = f"{self.chances_got} ({self.chances_left})"
 				self.ui.data["Game Info"]["Reward "] = f"{self.data_got} ({int(self.data_left) + int(self.data_got)})"
 
-				logger.debug(f"Chances {js.data.consumed_chances}/{js.data.daily_winning_chances} Data {js.data.won_data}/{js.data.remaining_data}")
+				self.logger.debug(f"Chances {js.data.consumed_chances}/{js.data.daily_winning_chances} Data {js.data.won_data}/{js.data.remaining_data}")
 		
 				if (not self.config.continue_on_chances_over) and js.data.consumed_chances >= js.data.daily_winning_chances:
-					logger.info("No chances left")
-					logger.warning("Self terminating")
+					self.logger.info("No chances left")
+					self.logger.warning("Self terminating")
 					exit()
 				
 
 		elif int(resp.status_code) == 502:
-			logger.warning("Bad Gateway")
+			self.logger.warning("Bad Gateway")
 			return
 		else:
-			logger.error(resp.status_code)
-			logger.error(resp.read())
+			self.logger.error(resp.status_code)
+			self.logger.error(resp.read())
 
 	def printx(self):
 
@@ -166,7 +167,7 @@ class Game:
 			res = response.read()
 			js = json.loads(res)
 			if js['statusInfo'] == "OK":
-				logger.debug(js['data'])
+				self.logger.debug(js['data'])
 
 				self.lastGifts = self.lastGifts[1:]
 				self.lastGifts.append(str(js['data']['amount']))
@@ -174,30 +175,30 @@ class Game:
 				self.ui.gift_history.append(str(js['data']['amount']))
 
 				if self.lastGifts.count('*') == 0 and sum([int(str(x)) for x in self.lastGifts if str(x).isdecimal()]) < 1:
-					logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
+					self.logger.warning(f"No gifts for last {self.noGiftsWarnLimit} requests")
 		
 		elif int(response.status_code) == 502:
-			logger.warning("Bad Gateway")
+			self.logger.warning("Bad Gateway")
 			self.lastGifts.append('@')
 			return
 		else:
-			logger.debug(response.status_code)
-			logger.debug(response.read())
+			self.logger.debug(response.status_code)
+			self.logger.debug(response.read())
 			exit()
 
 	def getRandomGift(self, body, headers):
 		try:
 			resp = self.conn.request(method='POST', url=f'/api/game/v1/game-session/random-gift/{self.gameConfig.sessionId}/1', data=body, headers=headers)
 		except httpx.ReadTimeout as e:
-			logger.debug("Read Timeout")
+			self.logger.debug("Read Timeout")
 			self.lastGifts.append('#')
 			return
 		except httpx.ConnectTimeout:
-			logger.debug("Connect Timeout")
+			self.logger.debug("Connect Timeout")
 			self.lastGifts.append('#')
 			return
 		except httpx.ConnectError:
-			logger.debug("Connect Error")
+			self.logger.debug("Connect Error")
 			self.lastGifts.append('#')
 			return
 
@@ -211,7 +212,7 @@ class Game:
 		elif self.gameConfig.game.name == "Cake Zone": game = "FB"
 		elif self.gameConfig.game.name == "Mega Run 2": game = "MR"
 		else: 
-			logger.error(f"Invalid game: {self.gameConfig.game.name}")
+			self.logger.error(f"Invalid game: {self.gameConfig.game.name}")
 			exit()
 		try:
 			command = ["node", r"bin\keygen.js", str(self.staticNumber),
@@ -221,19 +222,19 @@ class Game:
 			error = result.stderr.strip()
 
 			if error:
-				logger.error("subprocess error: " + error)
+				self.logger.error("subprocess error: " + error)
 			if output:
 				key = output
 
-			logger.debug(f"gift key: {self.staticNumber} {self.giftCount} {game} -> {key}")
+			self.logger.debug(f"gift key: {self.staticNumber} {self.giftCount} {game} -> {key}")
 			return key
 
 		except subprocess.CalledProcessError as e:
-			logger.error(e)
+			self.logger.error(e)
 			return None
 
 		except UnicodeDecodeError as e:
-			logger.error(e)
+			self.logger.error(e)
 			return None
 
 class RaidShooter(Game):
@@ -261,7 +262,7 @@ class RaidShooter(Game):
 		self.MIN_WAITING_TIME = 2
 
 	def randomGifts(self):
-		logger.debug(":randomGifts:")
+		self.logger.debug(":randomGifts:")
 
 		self.giftCount += 1
 
@@ -269,7 +270,7 @@ class RaidShooter(Game):
 		self.ui.next_beginning = int(time.time())
 		self.ui.next_end = int(time.time()) + sum(waiting_time)
 
-		logger.debug(f"Waiting time {waiting_time}")
+		self.logger.debug(f"Waiting time {waiting_time}")
 		time.sleep(sum(waiting_time))
 
 		black = [self.BLACK_ZONE for _ in range(self.MAX_BLACK_ZONE)]
@@ -278,10 +279,10 @@ class RaidShooter(Game):
 		values = eye + red + black
 
 		random_scores = [random.choice(values) for _ in range(self.MAX_SHOTS)]
-		logger.debug(f"Random score {random_scores}")
+		self.logger.debug(f"Random score {random_scores}")
 
 		self.SCORE += sum(random_scores)
-		logger.debug(f"Total score {self.SCORE}")
+		self.logger.debug(f"Total score {self.SCORE}")
 
 		body = {'score':self.SCORE}
 		body = json.dumps(body)
@@ -289,7 +290,7 @@ class RaidShooter(Game):
 		headers = self.headers
 		giftKey = self.getGiftKey()
 		if giftKey == None:
-			logger.error(f"Invalid giftKey: {giftKey}")
+			self.logger.error(f"Invalid giftKey: {giftKey}")
 			exit()
 		headers.update({'Idempotency-Key': giftKey,
 		'Content-Type': 'application/json',
@@ -303,7 +304,7 @@ class RaidShooter(Game):
 		'Cookie': '_ga=GA1.1.182677110.1730624223; _ga_1DWHZJ5VCF=GS1.1.1730624223.1.1.1730624622.40.0.1890109501'})
 
 		time_diff = time.time() - self.previous_gift
-		logger.debug(f"Time diff: {time_diff}")
+		self.logger.debug(f"Time diff: {time_diff}")
 
 		# if random.randint(0, 1) == 0:
 		# 	return
@@ -345,23 +346,23 @@ class FoodBlocks(Game):
 		return waiting_time
 
 	def randomGifts(self):
-		logger.debug(":randomGifts:")
+		self.logger.debug(":randomGifts:")
 
 		self.giftCount += 1
 
 		random_score = random.randint(self.MIN_SCORE, self.MAX_SCORE)
 		waiting_time = self.map_score_to_time(random_score)
 
-		logger.debug(f"Waiting time {waiting_time}")
+		self.logger.debug(f"Waiting time {waiting_time}")
 
 		self.ui.next_beginning = int(time.time())
 		self.ui.next_end = int(time.time()) + waiting_time
 		time.sleep(waiting_time)
-		logger.debug(f"Random score {random_score}")
+		self.logger.debug(f"Random score {random_score}")
 
 
 		self.SCORE += random_score
-		logger.debug(f"Total score {self.SCORE}")
+		self.logger.debug(f"Total score {self.SCORE}")
 
 		body = {'score':self.SCORE}
 		body = json.dumps(body)
@@ -369,7 +370,7 @@ class FoodBlocks(Game):
 		headers = self.headers
 		giftKey = self.getGiftKey()
 		if giftKey == None:
-			logger.error(f"Invalid giftKey: {giftKey}")
+			self.logger.error(f"Invalid giftKey: {giftKey}")
 			exit()
 
 		headers.update({'Idempotency-Key': giftKey,
@@ -384,7 +385,7 @@ class FoodBlocks(Game):
 		'Cookie': '_ga=GA1.1.182677110.1730624223; _ga_1DWHZJ5VCF=GS1.1.1730624223.1.1.1730624622.40.0.1890109501'})
 
 		time_diff = time.time() - self.previous_gift
-		logger.debug(f"Time diff: {time_diff}")
+		self.logger.debug(f"Time diff: {time_diff}")
 
 		# if random.randint(0, 1) == 0:
 		# 	return

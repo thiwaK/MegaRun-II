@@ -11,6 +11,7 @@ class Utils:
 	"""
 
 	def __init__(self, instance):
+		# self.logger = instance.logger
 		self.binary = instance.config.crypto_binary
 		self.JWTAlgo = instance.config.JWT_algo
 		self.encryptCMD = instance.config.encrypt_command

@@ -4,6 +4,8 @@
 
 A Python-based client for _Mega Games_ within the WOW Android app, reverse-engineered for educational purposes, focusing on automation.
 
+![Demo GIF](demo.gif)
+
 ---
 ### 🟥 NOTE
 

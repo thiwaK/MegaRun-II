@@ -1,4 +1,5 @@
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from seleniumwire.request import Response
 from seleniumwire.request import Request
 from seleniumwire.utils import decode
@@ -68,13 +69,18 @@ class Browser:
 
 		})
 
+		capabilities = DesiredCapabilities.CHROME
+		capabilities['goog:loggingPrefs'] = {'browser': 'OFF'} 
+
 		chrome_options = webdriver.ChromeOptions()
 		chrome_options.add_argument("--disable-application-cache")
 		chrome_options.add_argument("--disable-infobars")
 		chrome_options.add_argument("--no-sandbox")
-		chrome_options.add_argument("--enable-logging")
-		chrome_options.add_argument("--log-level=0")
 		chrome_options.add_argument("--ignore-certificate-errors")
+		chrome_options.add_argument("--log-level=3")  # Suppress driver logs
+		chrome_options.add_argument("--silent")       # Silent mode
+		chrome_options.add_argument("--disable-logging")
+		chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 		self.chrome_options = chrome_options
 
 	def logResponse(self, request:Request) -> None:
