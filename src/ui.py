@@ -1,4 +1,4 @@
-from logger import logger
+from logger import Logger
 from logger import CustomFormatterUI
 from logger import CustomLogHandlerUI
 from props import Color
@@ -18,7 +18,7 @@ class CLUI:
 	ratio_top = 0.30  # Ratio for the top section
 
 	def __init__(self, instance):
-
+		logger = Logger.getUILogger()
 		logHandler = CustomLogHandlerUI(self)
 		logHandler.setFormatter(CustomFormatterUI())
 		logger.addHandler(logHandler)

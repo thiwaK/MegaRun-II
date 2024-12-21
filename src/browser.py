@@ -11,11 +11,19 @@ import os
 import time
 import re
 import hashlib
+import psutil
 
 class Browser:
 	"""Browser manipulation"""
+
+	
 	
 	def __init__(self, instance) -> None:
+
+		self.RAID_SHOOTER_V = 19
+		self.RAID_SHOOTER_GAME_ID = "9482808f-72c3-43a5-96c4-38c3d3a7673e"
+		self.FOOD_BLOCKS_V = 24
+		self.FOOD_BLOCKS_GAME_ID = "907bd637-30c0-435c-af6a-ee2efc4c115a"
 
 		self.config          = instance.config
 		self.url             = self.config.GAME_LAUNCHER_URL
@@ -28,7 +36,7 @@ class Browser:
 		self.config.gameArena   = None
 		self.config.currentGame = Box({})
 		
-
+		self.driver_process = None
 		self.logExcludeExt      = self.config.ext_to_exclude_log_req
 		self.chromeDriverBinary = self.config.chrome_driver
 		self.userAgent          = self.config.user_agent
@@ -38,7 +46,6 @@ class Browser:
 			self.config['hash_table'] = {}
 
 		self.replaceRespData = Box({
-
 			'/games/9482808f-72c3-43a5-96c4-38c3d3a7673e/build/v19/bundle.js':{
 				'headers': {'Content-Type': 'application/javascript'},
 				'status_code': 200,
@@ -53,19 +60,19 @@ class Browser:
 				'read_mode': 'r'
 			},
 
-			'guage.webp':{
-				'headers': {'Content-Type': 'binary/octet-stream', 'accept-ranges':'bytes'},
-				'status_code': 200,
-				'file': r"RaidShooter\guage.png",
-				'read_mode': 'rb'
-			},
+			# 'guage.webp':{
+			# 	'headers': {'Content-Type': 'binary/octet-stream', 'accept-ranges':'bytes'},
+			# 	'status_code': 200,
+			# 	'file': r"RaidShooter\guage.png",
+			# 	'read_mode': 'rb'
+			# },
 
-			'hitboard.webp':{
-				'headers': {'Content-Type': 'binary/octet-stream', 'accept-ranges':'bytes'},
-				'status_code': 200,
-				'file': r"RaidShooter\hitboard.png",
-				'read_mode': 'rb'
-			}
+			# 'hitboard.webp':{
+			# 	'headers': {'Content-Type': 'binary/octet-stream', 'accept-ranges':'bytes'},
+			# 	'status_code': 200,
+			# 	'file': r"RaidShooter\hitboard.png",
+			# 	'read_mode': 'rb'
+			# }
 
 		})
 
@@ -106,11 +113,13 @@ class Browser:
 			}
 			self.logger.debug(json.dumps(formatted_request, indent=2))
 
-	def hashTable(self, request:Request) -> None:
+	def hashTable(self, request, response) -> None:
 		
 		file_name = request.url.split("/")[-1]
 		if file_name.endswith('.js') or file_name.endswith('.html'):
-			hex_hash = hashlib.sha256(request.body).hexdigest()
+			data_byte = response.body
+			self.logger.debug(data_byte)
+			hex_hash = hashlib.sha256(data_byte).hexdigest()
 			self.logger.debug(f"{file_name}:{hex_hash}")
 
 			if file_name in self.config.hash_table:
@@ -143,6 +152,17 @@ class Browser:
 		for k,v in headers.items():
 			del request.headers[k]
 			request.headers[k] = v
+
+
+	def killIt(self):
+		try:
+			for child in self.driver_process.children(recursive=True):
+				child.kill()
+			self.driver_process.kill()
+
+		except Exception as e:
+			print(e)
+	
 
 	def modifyResponse(self, file:str, headers:dict, status_code:int, read_mode:str, request) -> None:
 		"""
@@ -190,7 +210,6 @@ class Browser:
 				request.abort()
 			else:
 				self.logResponse(request)
-				self.hashTable(request)
 
 			if '/api/game/v1/game-session/random-gift/' in request.path:
 				self.logger.info("Random gift request detected")
@@ -203,6 +222,7 @@ class Browser:
 					self.logger.info("Session Id: " + sessionId)
 					if sessionId == None or sessionId == "":
 						self.logger.error("Unable to continue")
+						self.killIt()
 						exit()
 
 					self.config.currentGame['sessionId'] = sessionId
@@ -212,12 +232,31 @@ class Browser:
 				else:
 					self.logger.info("No Session Id found.")
 					self.logger.error("Unable to continue")
+					request.killIt()
 					exit()
 
 				self.config.currentGame['score'] = json.loads(request.body)['score']
 
 				___x = f"{request.headers['Idempotency-Key']} {self.config.currentGame['score']} {int(time.time())}"
 				self.logger.debug(___x)
+
+			if f'/games/{self.FOOD_BLOCKS_GAME_ID}/build' in request.path:
+				self.logger.info("FoodBlocks game JS request destected")
+				if request.path.split("/")[-2] != f"v{self.FOOD_BLOCKS_V}":
+					self.logger.error(f"Supported version: v{self.FOOD_BLOCKS_V}, but detected {request.path.split('/')[-2]}")
+					self.logger.error("Unable to continue. Terminating...")
+					request.abort()
+					self.killIt()
+					exit()
+
+			elif f'/games/{self.RAID_SHOOTER_GAME_ID}/build' in request.path:
+				self.logger.info("RaidShooter game JS request destected")
+				if request.path.split("/")[-2] != f"v{self.RAID_SHOOTER_V}":
+					self.logger.error(f"Supported version: v{self.RAID_SHOOTER_V}, but detected {request.path.split('/')[-2]}")
+					self.logger.error("Unable to continue. Terminating...")
+					request.abort()
+					self.killIt()
+					exit()
 
 
 			for k,v in self.replaceRespData.items():
@@ -261,6 +300,9 @@ class Browser:
 		:returns:   None
 		:rtype:     None
 		"""
+
+		self.hashTable(request, response)
+
 		if f'/api/user/v1/access-token/{self.token}' in request.path:
 			
 			js_ = json.loads(response.body)
@@ -309,19 +351,29 @@ class Browser:
 
 		service = Service(self.chromeDriverBinary)
 		driver = webdriver.Chrome(service=service, options=self.chrome_options, seleniumwire_options={})
+		self.driver_process = psutil.Process(driver.service.process.pid)
+
+
 		driver.request_interceptor = self.requestInterceptor
 		driver.response_interceptor = self.responseInterceptor
 
 		self.logger.debug("URL: " + url)
 		driver.get(url)
 
+		
+
 		# input()
 		while self.LOOP:
+			if not self.driver_process.is_running() or len(self.driver_process.children(recursive=True)) == 0:
+				self.logger.warning("No browser processess found.")
+				self.logger.info("Terminating...")
+				driver.quit()
+				exit()
 			time.sleep(1)
 
-		driver.quit()
 		self.logger.info("Leaving browser")
-
+		driver.quit()
+		
 		return self.config
 
 

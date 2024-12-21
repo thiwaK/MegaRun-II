@@ -167,7 +167,8 @@ class AppStatus:
 
 		self.config = instance.config
 		self.utils = instance.utill
-		self.conn = httpx.Client(base_url='https://codepush.appcenter.ms', http2=False)
+		timeout = httpx.Timeout(10.0)
+		self.conn = httpx.Client(base_url='https://codepush.appcenter.ms', http2=False, timeout=timeout)
 		self.headers = {
 			'accept': 'application/json',
 			'x-codepush-plugin-name': 'react-native-code-push',
@@ -200,7 +201,8 @@ class SupperApp:
 
 		self.config = instance.config
 		self.utils = instance.utils
-		self.conn = httpx.Client(base_url='https://api.wow.lk', http2=True)
+		timeout = httpx.Timeout(10.0)
+		self.conn = httpx.Client(base_url='https://api.wow.lk', http2=True, timeout=timeout)
 		self.headers = {
 			"accept": "application/json, text/plain, */*",
 			"accept-encoding": "gzip",

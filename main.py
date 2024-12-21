@@ -41,7 +41,7 @@ class Main:
 	version_support = "1.8.6"
 
 	def __init__(self, config_file='config.js', force_secondary_config=False, update_token=False,
-		skip_warn=False, keep_play_in_browser=False, continue_on_chances_over=False):
+		skip_warn=False, keep_play_in_browser=False, continue_on_chances_over=False, simple_ui=False):
 		self.configObject = Config(config_file)
 		self.config = self.configObject.load(force_secondary_config)
 		self.config.file = config_file
@@ -49,7 +49,19 @@ class Main:
 		self.config.keep_play_in_browser = keep_play_in_browser
 		self.config.continue_on_chances_over = continue_on_chances_over
 		
-		self.ui = CLUI(self)
+		if not simple_ui:
+			self.ui = CLUI(self)
+
+		else:
+			class UI:
+				def __init__(self, instance):
+					from logger import Logger
+					instance.logger = Logger.getConsoleLogger()
+
+			
+			self.ui = UI(self)
+
+
 		self.utils  = Utils(self)
 		self.wow = WOW(self)
 
@@ -57,20 +69,12 @@ class Main:
 			self.logger.error("Unsupported Opertating System. Only works with NT systems.")
 			sys.exit(1)
 
-		ui_thread = threading.Thread(target=self.ui.show, daemon=True)
-		ui_thread.start()
-		time.sleep(0.1)
+		if not simple_ui:
+			ui_thread = threading.Thread(target=self.ui.show, daemon=True)
+			ui_thread.start()
+			time.sleep(0.1)
 
-		self.logger.info("==================================================")
-		self.logger.error("ERR")
-		self.logger.warning("WARN")
-		self.logger.info("INFO")
-		self.logger.error("ERR")
-		self.logger.warning("WARN")
-		self.logger.info("INFO")
-
-
-		
+		self.logger.info("==================================================")		
 
 		if update_token:
 			self.getAccessToken()
@@ -145,9 +149,21 @@ class Main:
 
 
 	def getMegaWasana(self):
-		if not self.wow.getMegaWasana():
+		r = self.wow.getMegaWasana()
+		if not r:
 			self.logger.error("Unknown")
 			exit()
+
+		if r['statusCode'] != 200:
+			self.logger.error("Unknown")
+			exit()
+
+		for item in r['data']['reward']['breackDown']:
+			account = item['account']
+			chances = item['chances']
+
+			if chances > 0:
+				self.logger.info(f"{account} got {chances} chances")
 
 	def getUserPrimaryInfo(self):
 		r = self.wow.getUserPrimaryInfo()
@@ -177,11 +193,21 @@ class Main:
 			self.logger.error(r)
 			exit()
 
+
 	def getBanners(self):
 		r = self.wow.getBanners()
 		if r == None:
 			self.logger.error("Unknown")
 			exit()
+
+		for item in r:
+			image = item['image']
+			link = item['link']
+			startDate = item['startDate']
+			endDate = item['endDate']
+			
+			self.logger.debug({'image':image, 'link':link, 'startDate':startDate, 'endDate':endDate})
+			
 
 	def authorizeMegaApp(self):
 		r = self.wow.authorizeMegaApp()
@@ -284,13 +310,16 @@ if __name__ == '__main__':
 	parser.add_argument("--skip-warn", action="store_true", help="Force contune in warning situation.")
 	parser.add_argument("--ignore-chances-limit", action="store_true", help="Prevent the app from auto-terminating when chances are over.")
 	parser.add_argument("--browser-mode", action="store_true", help="Allow gameplay to continue in the browser.")
+	parser.add_argument("--simple-ui", action="store_true", help="Show minimal UI.")
 
 	args = parser.parse_args()
 	main = Main(config_file=args.config, force_secondary_config=args.secondary_config, update_token=args.update_token,
-		skip_warn=args.skip_warn, keep_play_in_browser=args.browser_mode, continue_on_chances_over=args.ignore_chances_limit)
+		skip_warn=args.skip_warn, keep_play_in_browser=args.browser_mode, continue_on_chances_over=args.ignore_chances_limit,
+		simple_ui=args.simple_ui)
 	
 	try:
 		main.start()
 	except KeyboardInterrupt as e:
+		print("\033[0m")
 		exit()
 	
