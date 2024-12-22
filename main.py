@@ -48,7 +48,7 @@ class Main:
 		self.config.skip_warn = skip_warn
 		self.config.keep_play_in_browser = keep_play_in_browser
 		self.config.continue_on_chances_over = continue_on_chances_over
-		
+		self.config.simple_ui = simple_ui
 		if not simple_ui:
 			self.ui = CLUI(self)
 
@@ -57,7 +57,6 @@ class Main:
 				def __init__(self, instance):
 					from logger import Logger
 					instance.logger = Logger.getConsoleLogger()
-
 			
 			self.ui = UI(self)
 
@@ -319,6 +318,7 @@ if __name__ == '__main__':
 	
 	try:
 		main.start()
+		print("\033[0m")
 	except KeyboardInterrupt as e:
 		print("\033[0m")
 		exit()

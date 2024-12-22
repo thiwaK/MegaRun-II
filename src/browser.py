@@ -164,6 +164,104 @@ class Browser:
 			print(e)
 	
 
+	def varifyKeygenFunc(self, response):
+
+		import subprocess
+		import gzip
+		from io import BytesIO
+
+		if response.body is None:
+			raise ValueError("No content in the response.")
+
+		content_type = response.headers.get('Content-Type', '')
+		encoding = response.headers.get('Content-Encoding', '')
+		body = None
+
+		if encoding == 'gzip':
+			with gzip.GzipFile(fileobj=BytesIO(response.body)) as f:
+				body = f.read().decode('utf-8')
+		else:
+			raise RuntimeError("Undefined encoding")
+
+		if body is None:
+			raise ValueError("No content in the body.")
+
+		def find_function_scope(data, pattern):
+
+			match = re.search(pattern, data)
+			if not match:
+				raise ValueError("Pattern not found in the data.")
+
+			match_start = match.start()
+			
+			brace_stack = 0
+			func_start = None
+			func_end = None
+			
+			for i in range(match_start, -1, -1):
+				if data[i:i+9] == ',function':
+					func_start = i
+					brace_stack = 1
+					break
+			
+			if func_start is None:
+				raise ValueError("No function declaration found.")
+			
+			found_call = False
+			for i in range(func_start, len(data)):
+				
+				if not found_call and data[i:i+6] == '.call(':
+					found_call = True
+					func_end = i + 6
+				elif found_call and data[i:i+2] == '},':
+					func_end = i + 2
+					break
+
+			if func_end is None:
+				raise ValueError("Matching closing brace not found for the function.")
+
+			return data[func_start:func_end]
+
+		def extract_functions(data, start, end):
+
+			fun_end = 0
+			fun_start = 0
+			caller_ = None
+			for x in re.finditer(end, data):
+				fun_end = x.start()
+				caller_ = x.group(1)
+
+			for x in re.finditer(start, data):
+				fun_start = x.start() + len(start)
+
+			functions_ = data[fun_start:fun_end]
+			return caller_, functions_
+
+
+		inner_fun_scope = find_function_scope(body, self.config.key_caller_pattern)
+		caller, prog  = extract_functions(inner_fun_scope, self.config.key_scope_start, self.config.key_scope_end)
+
+		prog += f'''
+		console.log(this['{caller}'](0))
+		'''
+
+		with open('prog.js', 'w') as f:
+			f.write(prog)
+
+
+		command = ["node", r"bin\keygen.js", '0', '0', '0', '0', '0']
+		result = subprocess.run(command, capture_output=True, text=True, shell=True).stdout.strip()
+
+		command2 = ["node", r"bin\prog.js"]
+		result2 = subprocess.run(command, capture_output=True, text=True, shell=True).stdout.strip()
+
+		if result != result2:
+			self.logger.error(f"Keygen failed! {result} != {result2}")
+			self.logger.error("Unable to continue. Terminating...")
+			self.killIt()
+			exit()
+
+
 	def modifyResponse(self, file:str, headers:dict, status_code:int, read_mode:str, request) -> None:
 		"""
 		craft custom reponse with custom content for the request
@@ -240,23 +338,6 @@ class Browser:
 				___x = f"{request.headers['Idempotency-Key']} {self.config.currentGame['score']} {int(time.time())}"
 				self.logger.debug(___x)
 
-			if f'/games/{self.FOOD_BLOCKS_GAME_ID}/build' in request.path:
-				self.logger.info("FoodBlocks game JS request destected")
-				if request.path.split("/")[-2] != f"v{self.FOOD_BLOCKS_V}":
-					self.logger.error(f"Supported version: v{self.FOOD_BLOCKS_V}, but detected {request.path.split('/')[-2]}")
-					self.logger.error("Unable to continue. Terminating...")
-					request.abort()
-					self.killIt()
-					exit()
-
-			elif f'/games/{self.RAID_SHOOTER_GAME_ID}/build' in request.path:
-				self.logger.info("RaidShooter game JS request destected")
-				if request.path.split("/")[-2] != f"v{self.RAID_SHOOTER_V}":
-					self.logger.error(f"Supported version: v{self.RAID_SHOOTER_V}, but detected {request.path.split('/')[-2]}")
-					self.logger.error("Unable to continue. Terminating...")
-					request.abort()
-					self.killIt()
-					exit()
 
 
 			for k,v in self.replaceRespData.items():
@@ -286,7 +367,7 @@ class Browser:
 
 					self.config.currentGame['game'] = game
 
-					self.ui.data["Game Info"]["Name   "] = game.name
+					if not self.config.simple_ui: self.ui.data["Game Info"]["Name   "] = game.name
 		
 	def responseInterceptor(self, request:Request, response:Response) -> None:
 		"""
@@ -325,6 +406,19 @@ class Browser:
 				self.logger.error(json.dumps(js_, indent=2))
 				driver.quit()
 				exit()
+
+		if f'/games/{self.FOOD_BLOCKS_GAME_ID}/build' in request.path and request.path.endswith('bundle.js'):
+			self.logger.info("FoodBlocks game JS request destected")
+			if request.path.split("/")[-2] != f"v{self.FOOD_BLOCKS_V}":
+				self.logger.warning(f"Supported version: v{self.FOOD_BLOCKS_V}, but detected {request.path.split('/')[-2]}")
+				self.varifyKeygenFunc(response)
+
+
+		elif f'/games/{self.RAID_SHOOTER_GAME_ID}/build' in request.path and request.path.endswith('bundle.js'):
+			self.logger.info("RaidShooter game JS request destected")
+			if request.path.split("/")[-2] != f"v{self.RAID_SHOOTER_V}":
+				self.logger.warning(f"Supported version: v{self.RAID_SHOOTER_V}, but detected {request.path.split('/')[-2]}")
+				self.varifyKeygenFunc(response)
 
 
 		# 'abort', 'body', 'cert', 'create_response', 'date', 'headers'
