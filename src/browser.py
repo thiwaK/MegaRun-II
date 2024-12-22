@@ -242,10 +242,10 @@ class Browser:
 		caller, prog  = extract_functions(inner_fun_scope, self.config.key_scope_start, self.config.key_scope_end)
 
 		prog += f'''
-		console.log(this['{caller}'](0))
+		console.log({caller}(0,0,0))
 		'''
 
-		with open('prog.js', 'w') as f:
+		with open(r'bin\prog.js', 'w') as f:
 			f.write(prog)
 
 
@@ -253,7 +253,7 @@ class Browser:
 		result = subprocess.run(command, capture_output=True, text=True, shell=True).stdout.strip()
 
 		command2 = ["node", r"bin\prog.js"]
-		result2 = subprocess.run(command, capture_output=True, text=True, shell=True).stdout.strip()
+		result2 = subprocess.run(command2, capture_output=True, text=True, shell=True).stdout.strip()
 
 		if result != result2:
 			self.logger.error(f"Keygen failed! {result} != {result2}")
@@ -413,12 +413,20 @@ class Browser:
 				self.logger.warning(f"Supported version: v{self.FOOD_BLOCKS_V}, but detected {request.path.split('/')[-2]}")
 				self.varifyKeygenFunc(response)
 
+				if not self.config.skip_warn:
+					self.killIt()
+					exit()
+
 
 		elif f'/games/{self.RAID_SHOOTER_GAME_ID}/build' in request.path and request.path.endswith('bundle.js'):
 			self.logger.info("RaidShooter game JS request destected")
 			if request.path.split("/")[-2] != f"v{self.RAID_SHOOTER_V}":
 				self.logger.warning(f"Supported version: v{self.RAID_SHOOTER_V}, but detected {request.path.split('/')[-2]}")
 				self.varifyKeygenFunc(response)
+
+				if not self.config.skip_warn:
+					self.killIt()
+					exit()
 
 
 		# 'abort', 'body', 'cert', 'create_response', 'date', 'headers'
