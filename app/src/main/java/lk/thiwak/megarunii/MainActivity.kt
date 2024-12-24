@@ -1,6 +1,9 @@
 package lk.thiwak.megarunii
 
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Base64
+import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
@@ -10,6 +13,8 @@ import android.view.Menu
 import android.view.MenuItem
 import lk.thiwak.megarunii.ui.main.SectionsPagerAdapter
 import lk.thiwak.megarunii.databinding.ActivityMainBinding
+import java.util.UUID
+import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,15 +23,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
-        val viewPager: ViewPager = binding.viewPager
-        viewPager.adapter = sectionsPagerAdapter
-        val tabs: TabLayout = binding.tabs
-        tabs.setupWithViewPager(viewPager)
         val fab: FloatingActionButton = binding.fab
+
+
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
