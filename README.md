@@ -60,6 +60,7 @@ I published this repository to offer some comfort to those on similar journeys, 
 | `--skip-warn`     | Continue execution despite warnings.                                       |
 | `--browser-mode` | Allow gameplay to continue in the browser.                                 |
 | `--ignore-chance-limit` | Prevent the app from auto-terminating when chances are over.               |
+| `--minimal-ui` | Minimal UI mode.               |
 
 ---
 ### 🚀 Contribution

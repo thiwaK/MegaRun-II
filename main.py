@@ -41,15 +41,15 @@ class Main:
 	version_support = "1.8.6"
 
 	def __init__(self, config_file='config.js', force_secondary_config=False, update_token=False,
-		skip_warn=False, keep_play_in_browser=False, continue_on_chances_over=False, simple_ui=False):
+		skip_warn=False, keep_play_in_browser=False, continue_on_chances_over=False, minimal_ui=False):
 		self.configObject = Config(config_file)
 		self.config = self.configObject.load(force_secondary_config)
 		self.config.file = config_file
 		self.config.skip_warn = skip_warn
 		self.config.keep_play_in_browser = keep_play_in_browser
 		self.config.continue_on_chances_over = continue_on_chances_over
-		self.config.simple_ui = simple_ui
-		if not simple_ui:
+		self.config.minimal_ui = minimal_ui
+		if not minimal_ui:
 			self.ui = CLUI(self)
 
 		else:
@@ -309,12 +309,12 @@ if __name__ == '__main__':
 	parser.add_argument("--skip-warn", action="store_true", help="Force contune in warning situation.")
 	parser.add_argument("--ignore-chances-limit", action="store_true", help="Prevent the app from auto-terminating when chances are over.")
 	parser.add_argument("--browser-mode", action="store_true", help="Allow gameplay to continue in the browser.")
-	parser.add_argument("--simple-ui", action="store_true", help="Show minimal UI.")
+	parser.add_argument("--minimal-ui", action="store_true", help="Show minimal UI.")
 
 	args = parser.parse_args()
 	main = Main(config_file=args.config, force_secondary_config=args.secondary_config, update_token=args.update_token,
 		skip_warn=args.skip_warn, keep_play_in_browser=args.browser_mode, continue_on_chances_over=args.ignore_chances_limit,
-		simple_ui=args.simple_ui)
+		minimal_ui=args.minimal_ui)
 	
 	try:
 		main.start()

@@ -199,10 +199,16 @@ class SupperApp:
 
 	def __init__(self, instance):
 
+		adapter_ip = "NeoAdapter_VPN127"
+
 		self.config = instance.config
 		self.utils = instance.utils
 		timeout = httpx.Timeout(10.0)
-		self.conn = httpx.Client(base_url='https://api.wow.lk', http2=True, timeout=timeout)
+		self.conn = httpx.Client(
+			base_url='https://api.wow.lk', 
+			http2=True, 
+			timeout=timeout,
+			transport=httpx.HTTPTransport(local_address=adapter_ip))
 		self.headers = {
 			"accept": "application/json, text/plain, */*",
 			"accept-encoding": "gzip",

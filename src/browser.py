@@ -20,7 +20,7 @@ class Browser:
 	
 	def __init__(self, instance) -> None:
 
-		self.RAID_SHOOTER_V = 19
+		self.RAID_SHOOTER_V = 20
 		self.RAID_SHOOTER_GAME_ID = "9482808f-72c3-43a5-96c4-38c3d3a7673e"
 		self.FOOD_BLOCKS_V = 24
 		self.FOOD_BLOCKS_GAME_ID = "907bd637-30c0-435c-af6a-ee2efc4c115a"
@@ -46,10 +46,10 @@ class Browser:
 			self.config['hash_table'] = {}
 
 		self.replaceRespData = Box({
-			'/games/9482808f-72c3-43a5-96c4-38c3d3a7673e/build/v19/bundle.js':{
+			'/games/9482808f-72c3-43a5-96c4-38c3d3a7673e/build/v20/bundle.js':{
 				'headers': {'Content-Type': 'application/javascript'},
 				'status_code': 200,
-				'file': 'bundle_raidshooter_debug.js',
+				'file': 'bundle_raidshooter_debug_v20.js',
 				'read_mode': 'r'
 			},
 
@@ -260,6 +260,8 @@ class Browser:
 			self.logger.error("Unable to continue. Terminating...")
 			self.killIt()
 			exit()
+		else:
+			self.logger.info(f"Keygen passed {result} == {result2}")
 
 
 	def modifyResponse(self, file:str, headers:dict, status_code:int, read_mode:str, request) -> None:
@@ -367,7 +369,7 @@ class Browser:
 
 					self.config.currentGame['game'] = game
 
-					if not self.config.simple_ui: self.ui.data["Game Info"]["Name   "] = game.name
+					if not self.config.minimal_ui: self.ui.data["Game Info"]["Name   "] = game.name
 		
 	def responseInterceptor(self, request:Request, response:Response) -> None:
 		"""
