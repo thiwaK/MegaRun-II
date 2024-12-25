@@ -1,40 +1,33 @@
 package lk.thiwak.megarunii
 
-import android.os.Bundle
-import android.provider.Settings
-import android.util.Base64
-import android.util.Log
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayout
-import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import lk.thiwak.megarunii.ui.main.SectionsPagerAdapter
-import lk.thiwak.megarunii.databinding.ActivityMainBinding
-import java.util.UUID
-import java.security.MessageDigest
+import android.os.Bundle
+import android.widget.TextView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
+        val textView: TextView = findViewById(R.id.text_a)
 
+        val initialHeaders = mapOf(
+            "User-Agent" to "OkHTTP",
+        )
+        val req:Request = Request()
+        req.addHeaders(initialHeaders)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val fab: FloatingActionButton = binding.fab
-
-
-
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+        GlobalScope.launch(Dispatchers.Main) {
+            val result = withContext(Dispatchers.IO) {
+                req.getData("https://duckduckgo.com", null)
+            }
+            textView.text = result.toString()
         }
+
+
     }
 }
