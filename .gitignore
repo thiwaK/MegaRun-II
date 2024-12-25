@@ -7,7 +7,5 @@
 *.pyc
 *.json
 *.bin
-*.exe
 *.dll
 *.xml
-/bin/
