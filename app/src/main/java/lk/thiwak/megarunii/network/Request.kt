@@ -1,5 +1,7 @@
-package lk.thiwak.megarunii
+package lk.thiwak.megarunii.network
 
+import android.content.Context
+import lk.thiwak.megarunii.log.Logger
 import okhttp3.*
 import okhttp3.Request
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -7,9 +9,7 @@ import java.io.IOException
 
 
 
-open class Request {
-
-    private val logger = Log.getLogger(API::class.java.name)
+open class Request(private val context: Context) {
 
     private var client: OkHttpClient = OkHttpClient.Builder().build()
     private var headers: MutableMap<String, String> = mutableMapOf()
@@ -18,24 +18,20 @@ open class Request {
     private fun validateResponse(response: Response): Boolean{
         if (response.code in listOf(201, 200)) {
             return true
+        } else if (response.code == 403){
+            Logger.error(context, "403:Forbidden")
+        } else if (response.code == 401) {
+            Logger.error(context,"401:Unauthorized")
+            Logger.info(context,"Retry with --update-token")
+        } else {
+            Logger.debug(context, response.code.toString())
+            Logger.error(context,"Unknown")
+            Logger.debug(context,response.body.toString())
         }
-        else if (response.code == 403){
-            logger.log("403:Forbidden")
-            return None
-        }
-
-        elif int(response.status_code) == 401:
-        logger.error("401:Unauthorized")
-        logger.info("Retry with --update-token")
-        return None
-        else:
-        logger.error("Unknown")
-        logger.debug(response.status_code)
-        logger.debug(response.text)
-        return None
+        return false
     }
 
-    private fun executeRequest(request: okhttp3.Request): Response? {
+    private fun executeRequest(request: Request): Response? {
         return try {
             val response:Response = client.newCall(request).execute()
             if (validateResponse(response)){
@@ -47,28 +43,8 @@ open class Request {
             null
         }
 
-        /*
-        if int(response.status_code) in [201, 200]:
-			res = response.text
-			js = json.loads(res)
-			logger.debug(js)
-			return Box(js)
-
-		elif int(response.status_code) == 403:
-			logger.error("403:Forbidden")
-			return None
-
-		elif int(response.status_code) == 401:
-			logger.error("401:Unauthorized")
-			logger.info("Retry with --update-token")
-			return None
-		else:
-			logger.error("Unknown")
-			logger.debug(response.status_code)
-			logger.debug(response.text)
-			return None
-        * */
     }
+
     private fun buildUrlWithParams(url: String, params: Map<String, String>): String {
         val httpUrl = url.toHttpUrlOrNull()?.newBuilder()
         params.forEach { (key, value) ->

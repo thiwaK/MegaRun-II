@@ -1,17 +1,15 @@
-package lk.thiwak.megarunii
+package lk.thiwak.megarunii.network
 
-import lk.thiwak.megarunii.Request
 import okhttp3.Response
-import java.util.logging.Logger
+import android.content.Context
+import lk.thiwak.megarunii.Configuration
+import lk.thiwak.megarunii.log.Logger
 
+class API(private var context:Context, private var AppConfig: Configuration) {
 
-
-class API(private var AppConfig: Configuration) {
-
-    private val logger = Logger.getLogger(API::class.java.name)
 
     private var headers:MutableMap<String, String> = mutableMapOf()
-    private var request:Request = Request()
+    private var request: Request = Request(context)
 
     private val OKHTTP_VER = "4.9.2"
     private val BASE_URL = "https://api.wow.lk"
@@ -29,35 +27,24 @@ class API(private var AppConfig: Configuration) {
         ))
     }
 
-    private fun get(urlSuffix:String){
+    private fun get(urlSuffix:String): String? {
         request.addHeaders(headers)
         val response: Response? = request.getData("$BASE_URL/$urlSuffix")
         if (response != null) {
-            if
+            return response.body.toString()
         }
+        return null
     }
 
     fun checkout() {
-        logger.info(":checkout:")
+        Logger.info(context, ":checkout:")
 
         headers["authorization"] = "Bearer " + AppConfig.accessToken
         val urlSuffix = "/superapp-common-checkout-service/cart/" + AppConfig.mobileNumber
 
-        request.getData("$BASE_URL/$urlSuffix")
-        resp = self.conn.request(
-            method = "GET",
-            ,
-            headers = self.headers
-        )
+        val responseBody = get(urlSuffix)
+        //TODO if okay, move to next, if not kill the service
 
-        js = self.validateResponse(resp)
-        if js:
-            return js
-
-        logger.debug(resp.status_code)
-        logger.debug(resp.headers)
-        logger.debug(resp.text)
-        return None
     }
 
 
