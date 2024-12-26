@@ -13,13 +13,28 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3f00292e-bc9b-4a7e-82aa-425140f6b8df" name="Changes" comment="" />
+    <list default="true" id="3f00292e-bc9b-4a7e-82aa-425140f6b8df" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/API.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/Configuration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/LogManager.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/LogView.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/LogViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_log_view_model.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/7.4/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.4/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/Request.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/lk/thiwak/megarunii/Request.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[192.168.1.100:5555]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -51,6 +66,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
     <property name="cidr.known.project.marker" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="android.template.1500804193">
+      <recent name="lk.thiwak.megarunii" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">

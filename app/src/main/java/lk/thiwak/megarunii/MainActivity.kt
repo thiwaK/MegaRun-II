@@ -13,6 +13,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val logTextView  = findViewById<TextView>(R.id.logView)
+        LogView(logTextView )
+
         val textView: TextView = findViewById(R.id.text_a)
 
         val initialHeaders = mapOf(
@@ -29,5 +32,20 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+    }
+}
+
+class LogViewModel : ViewModel() {
+    // Expose the LiveData from LogManager
+    val logMessages = LogManager.logMessages
+
+    // Provide a method to add logs via LogManager
+    fun addLog(message: String, level: LogManager.LogLevel = LogManager.LogLevel.INFO) {
+        LogManager.log(message, level)
+    }
+
+    // Method to clear logs
+    fun clearLogs() {
+        LogManager.clearLogs()
     }
 }
