@@ -21,19 +21,32 @@ import lk.thiwak.megarunii.log.LogReceiver
 import lk.thiwak.megarunii.log.Logger
 import lk.thiwak.megarunii.network.Request
 import android.view.MotionEvent
+import android.webkit.WebView
 import android.widget.ScrollView
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.drawable.Drawable
+import android.os.Build
+import android.text.Html
+import android.text.style.ReplacementSpan
+import android.util.Log
+import androidx.annotation.RequiresApi
+import lk.thiwak.megarunii.log.CustomBackgroundSpan
 
 class LogActivity : AppCompatActivity() {
 
 
-    private var currentPosition: Long = 0 // Tracks the current read position
-    private val chunkSize = 1024 // Number of characters to read in each chunk
+    private var currentPosition: Long = 0
+    private val chunkSize = 1024*10
     private val logFileName = "app_log.txt"
     private lateinit var logScrollView: ScrollView
     private lateinit var logView: TextView
+    private lateinit var logBgDrawable:Drawable
+    val TAG:String = "LogActivity"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +65,12 @@ class LogActivity : AppCompatActivity() {
             }
         }
 
+
         appendLogChunk()
+
+        logScrollView.post {
+            logScrollView.scrollTo(0, logScrollView.getChildAt(0).height)
+        }
 
     }
 
@@ -68,14 +86,40 @@ class LogActivity : AppCompatActivity() {
                         val newContent = String(buffer, 0, charsRead)
                         currentPosition += charsRead
 
-                        // Process each log entry and color based on level
                         val logEntries = newContent.split("\n") // Split by lines
-                        logEntries.forEach { logEntry ->
-                            val (logLevel, message) = parseLogEntry(logEntry) // Parse the log entry into level and message
-                            val coloredMessage = applyLogColor(logLevel, message)
+                        var count = 0;
 
-                            // Append the styled message to TextView
-                            logView.append(coloredMessage)
+                        logEntries.forEach { logEntry ->
+                            // val formattedLogEntry = htmlFormatter(logEntry)
+
+                            if (logEntry.trim().isEmpty()){
+                                return@forEach
+                            }
+
+                            val (date, logLevel, message) = parseLogEntry(logEntry)
+
+                            if (date.isEmpty() || logLevel.isEmpty() || message.isEmpty()){
+                                return@forEach
+                            }
+
+                            logBgDrawable = if (count%2 == 0){
+                                ContextCompat.getDrawable(this, R.drawable.log_box_background_a)!! } else {
+                                ContextCompat.getDrawable(this, R.drawable.log_box_background_b)!! }
+
+
+
+                            // val coloredMessage = applyLogColor(logLevel, message, count%2)
+                            var spannableMessage = SpannableString(logEntry)
+                            spannableMessage.setSpan(
+                                CustomBackgroundSpan(logBgDrawable),
+                                0,
+                                logEntry.length,
+                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                            )
+                            logView.append(spannableMessage)
+                            count += 1
+
+
                         }
                     }
                 }
@@ -88,26 +132,29 @@ class LogActivity : AppCompatActivity() {
         }
     }
 
-    private fun parseLogEntry(logEntry: String): Pair<String, String> {
-        val parts = logEntry.split(" ", limit = 2)
-        return if (parts.size == 2) {
-            parts[0] to parts[1]
-        } else {
-            "INFO" to logEntry
-        }
+
+    private fun parseLogEntry(logEntry: String): Triple<String, String, String> {
+        val regex = """\[(.*?)\] \[(.*?)\] (.*)""".toRegex()
+        val matchResult = regex.matchEntire(logEntry)
+
+        return matchResult?.let {
+            val (datetime, level, message) = it.destructured
+            Triple(datetime, level, message)
+        } ?:
+
+        return Triple("", "", "")
+
+
+//        val parts = logEntry.split(" ", limit = 3)
+//        Log.i(TAG, "$parts[0] $parts[1] $parts[2]\n")
+//        return if (parts.size == 3) {
+//            parts[1] to  "$parts[0] $parts[1] $parts[2]\n"
+//
+//        } else {
+//            "[D]" to logEntry
+//        }
     }
 
-    private fun applyLogColor(logLevel: String, message: String): SpannableString {
-        val spannableMessage = SpannableString(message)
-
-        when (logLevel) {
-            "INFO" -> spannableMessage.setSpan(ForegroundColorSpan(Color.BLUE), 0, message.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            "ERROR" -> spannableMessage.setSpan(ForegroundColorSpan(Color.RED), 0, message.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            "WARN" -> spannableMessage.setSpan(ForegroundColorSpan(Color.YELLOW), 0, message.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            "DEBUG" -> spannableMessage.setSpan(ForegroundColorSpan(Color.GREEN), 0, message.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            else -> spannableMessage.setSpan(ForegroundColorSpan(Color.GRAY), 0, message.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-
-        return spannableMessage
-    }
 }
+
+

@@ -38,8 +38,9 @@ class MainActivity : AppCompatActivity() {
 
 
         Logger.debug(this, "This is a debug message")
-//        testNet()
         Logger.info(this, "This is a info message")
+        Logger.error(this, "This is a error message")
+        Logger.warning(this, "This is a warning message")
 //        registerGesture(this)
     }
 
