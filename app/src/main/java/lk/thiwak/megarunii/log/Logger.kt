@@ -10,7 +10,7 @@ class Logger {
 
     companion object {
 
-        fun log(context: Context, message: String, level: LogLevel) {
+        private fun log(context: Context, message: String, level: LogLevel) {
             val intent = Intent(Utils.LOG_INTENT_ACTION)
             intent.putExtra("logMessage", message)
             if (level == LogLevel.DEBUG){ intent.putExtra("logLevel", "D")}

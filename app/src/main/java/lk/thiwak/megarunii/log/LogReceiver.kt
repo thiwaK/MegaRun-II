@@ -4,21 +4,28 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.widget.TextView
+import java.io.File
+import java.io.IOException
 
-class LogReceiver(private val logView: TextView) : BroadcastReceiver() {
-    private val logBuilder = StringBuilder()
+class LogReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val logMessage = intent.getStringExtra("logMessage") ?: return
         val logLevel = intent.getStringExtra("logLevel") ?: "D"
 
         val formattedMessage = "[${logLevel}] $logMessage\n"
-        logBuilder.append(formattedMessage)
 
-        logView.post {
-            logView.text = logBuilder.toString()
+        try {
+            val logFile = File(context.filesDir, "app_log.txt")
+            if (!logFile.exists()) {
+                logFile.createNewFile()
+            }
+            logFile.appendText(formattedMessage)
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 }
+
 
 
