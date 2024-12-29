@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -44,6 +45,20 @@
                 <action android:name="lk.thiwak.megarunii.LOG_MESSAGE" />
             </intent-filter>
         </receiver>
+
+
+        <receiver
+            android:name=".BackgroundService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="lk.thiwak.megarunii.STOP_SERVICE" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".BackgroundService" android:enabled="true" android:exported="false"/>
+
+
     </application>
 
 </manifest>

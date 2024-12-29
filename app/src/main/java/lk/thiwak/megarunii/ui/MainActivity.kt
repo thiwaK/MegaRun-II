@@ -1,5 +1,7 @@
 package lk.thiwak.megarunii.ui
 
+import android.app.ActivityManager
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -18,30 +20,46 @@ import lk.thiwak.megarunii.log.LogReceiver
 import lk.thiwak.megarunii.log.Logger
 import lk.thiwak.megarunii.network.Request
 import android.view.MotionEvent
+import android.widget.Toast
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var logReceiver: LogReceiver
-    private lateinit var gestureDetector: GestureDetector
+    private lateinit var fab: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // create toolbar
+        fab = findViewById(R.id.fab)
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // register log receiver
         logReceiver = LogReceiver()
         registerReceiver(logReceiver, IntentFilter(Utils.LOG_INTENT_ACTION))
 
+        if (isServiceRunning(BackgroundService::class.java, this)) {
+            fab.setImageResource(R.drawable.ic_baseline_stop_circle_24) // Service is running
+            Logger.debug(this, "FAB: set action to stop")
+        } else {
+            fab.setImageResource(R.drawable.ic_baseline_play_circle_24) // Service is not running
+            Logger.debug(this, "FAB: set action to start")
+        }
 
-        Logger.debug(this, "This is a debug message")
-        Logger.info(this, "This is a info message")
-        Logger.error(this, "This is a error message")
-        Logger.warning(this, "This is a warning message")
-//        registerGesture(this)
+
+
+
+        fab.setOnClickListener {
+            if (isServiceRunning(BackgroundService::class.java, this)) {
+                // If service is running, stop the service
+                stopService()
+            } else {
+                // If service is not running, start the service
+
+                startService()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -60,25 +78,36 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun registerGesture(context: Context){
-        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(
-                e1: MotionEvent?, e2: MotionEvent,
-                velocityX: Float, velocityY: Float
-            ): Boolean {
-                if (e1 != null) {
-                    if (e1.x < e2.x) {
-                        openLogView(context)
-                    }
-                }
-                return super.onFling(e1, e2, velocityX, velocityY)
+
+
+    private fun isServiceRunning(serviceClass: Class<out Service>, context: Context): Boolean {
+        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
             }
-        })
+        }
+        return false
     }
 
-    private fun openLogView(context: Context) {
-        val intent = Intent(this, LogActivity::class.java)
-        startActivity(intent)
+
+    private fun startService(){
+        Logger.debug(this, "Action: start service")
+        startService(Intent(this, BackgroundService::class.java))
+        fab.setImageResource(R.drawable.ic_baseline_stop_circle_24) // Change to stop icon
+        Toast.makeText(this, "Service Started", Toast.LENGTH_SHORT).show()
+
+    }
+
+    private fun stopService(){
+        Logger.debug(this, "Action: stop service")
+
+        val stopIntent = Intent()
+        stopIntent.action = BackgroundService.STOP_SERVICE_INTENT_ACTION
+        sendBroadcast(stopIntent)
+
+        fab.setImageResource(R.drawable.ic_baseline_play_circle_24) // Change to play icon
+        Toast.makeText(this, "Service Stopped", Toast.LENGTH_SHORT).show()
     }
 
     private fun testNet() {
