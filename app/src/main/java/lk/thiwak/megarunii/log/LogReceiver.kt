@@ -28,7 +28,7 @@ class LogReceiver : BroadcastReceiver() {
         }
     }
 
-    fun getCurrentDateTime(): String {
+    private fun getCurrentDateTime(): String {
         val dateFormat = SimpleDateFormat("yy-MM-dd HH:mm:ss") // Define the format
         val currentDate = Date() // Get current date and time
         return dateFormat.format(currentDate) // Format the date and return

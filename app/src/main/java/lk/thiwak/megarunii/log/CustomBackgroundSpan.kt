@@ -4,8 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import android.text.Html
-import android.text.Spanned
+import android.text.*
 import android.text.style.ReplacementSpan
 import android.util.Log
 
@@ -33,36 +32,28 @@ class CustomBackgroundSpan(private val drawable: Drawable) : ReplacementSpan() {
         bottom: Int,
         paint: Paint
     ) {
-
-        val (date, logLevel, message) = parseLogEntry(text.toString())
-        var htmlContent = ""
-        if (logLevel == "I") {
-            paint.color = Color.CYAN
-        } else if (logLevel == "E") {
-            paint.color = Color.RED
-        } else if (logLevel == "W") {
-            paint.color = Color.YELLOW
-        } else if (logLevel == "D") {
-            paint.color = Color.GRAY
-        } else {
-            paint.color = Color.GRAY
-        }
-
         val parentWidth = canvas.width.toFloat()
 
-        drawable.setBounds(
-            0,  // Align drawable with the left edge of the canvas
-            top,
-            parentWidth.toInt(), // Align drawable with the right edge of the canvas
-            bottom
-        )
+        // Draw the background drawable
+        drawable.setBounds(0, top, parentWidth.toInt(), bottom)
         drawable.draw(canvas)
 
+        // Parse and format the log entry
+        val formattedText = htmlFormatter(text.substring(start, end))
 
+        // Use StaticLayout to render formatted text
+        val staticLayout = StaticLayout.Builder
+            .obtain(formattedText, 0, formattedText.length, TextPaint(paint), parentWidth.toInt())
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(0f, 1f)
+            .build()
 
-        val textPaddingStart = 16f  // Add some padding to the left (optional)
-        canvas.drawText(Html.fromHtml(htmlFormatter(text.toString()).toString(), Html.FROM_HTML_MODE_COMPACT), start, end, textPaddingStart, y.toFloat(), paint)
+        canvas.save()
+        canvas.translate(x, top.toFloat()) // Position text within the drawable
+        staticLayout.draw(canvas)
+        canvas.restore()
     }
+
 
 
 
@@ -81,31 +72,31 @@ class CustomBackgroundSpan(private val drawable: Drawable) : ReplacementSpan() {
 
     private fun htmlFormatter(logEntry: String): Spanned {
 
-
         val (datetime, logLevel, message) = parseLogEntry(logEntry)
 
-        var msgTextColor = ""
-        var dateTextColor = ""
-        var logLevelTextColor = ""
+        var msgTextColor = "#CCCCCC" // Full brightness for the message text
+        var dateTextColor = "#808080" // Darker green for datetime
 
-        if (logLevel== "I") {
-            msgTextColor = "<font color=#ffffff>"
+        if (logLevel == "I") {
+            msgTextColor = "#2481d1" // Bright light blue
+            dateTextColor = "#4682B4" // Steel blue
         } else if (logLevel == "E") {
-            msgTextColor = "<font color=#ff0000>"
+            msgTextColor = "#FF4444" // Bright red
+            dateTextColor = "#8B0000" // Dark red
         } else if (logLevel == "W") {
-            msgTextColor = "<font color=#ffff00>"
-        } else if (logLevel == "D") {
-            msgTextColor = "<font color=#888888>"
-        } else {
-            msgTextColor = "<font color=#888888>"
+            msgTextColor = "#FFFF00" // Bright yellow
+            dateTextColor = "#B8860B" // Dark goldenrod
         }
 
         return Html.fromHtml(
-            "<p style='margin-bottom:5px; font-size:8px; background-color:#000000; color:#ffffff;'>" +
-                    "$msgTextColor[$datetime] [$logLevel]</font>" +
-                    " <font color=#ffffff style='font-size:8px;'>$message</font></p>",
+            "<p style='font-family:monospace;'>" +
+                    "<span style=\"color:$dateTextColor;\">  $datetime  </span> " +
+                    "<span style=\"color:$msgTextColor style='font-size:8px;\">$message</span>" +
+                    "</p>",
             Html.FROM_HTML_MODE_COMPACT
         )
+
+
 
 
 
