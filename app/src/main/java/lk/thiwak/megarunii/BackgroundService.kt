@@ -93,8 +93,8 @@ class BackgroundService : Service() {
     private fun getNotificationBuilder(): NotificationCompat.Builder {
         // Create notification channel for Android 8.0 and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Background Service"
-            val descriptionText = "Notification for the background service"
+            val name = "MegaRun-II Background Service"
+            val descriptionText = "Notification for the MegaRun-II background service"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -109,7 +109,7 @@ class BackgroundService : Service() {
             .setContentTitle("Background Service Running")
             .setContentText("Self playing is active.")
             .setOnlyAlertOnce(true)
-            .setProgress(100, 50, false)
+            .setProgress(40, 20, false)
             .setOngoing(true)
             .setSmallIcon(R.drawable.ic_baseline_play_circle_24) // Replace with your icon
     }
@@ -132,7 +132,7 @@ class BackgroundService : Service() {
 
     private fun performBackgroundTask() {
         // Start a background thread to simulate work
-        backgroundThread = Worker()
+        backgroundThread = Worker(this)
         backgroundThread?.start()
     }
 
@@ -147,6 +147,7 @@ class BackgroundService : Service() {
             }
             Log.i("BackgroundService", "Thread stopped.")
 
+            shouldRun = false
             handler.removeCallbacks(runnable)
             stopSelf()
         }

@@ -8,12 +8,13 @@ import lk.thiwak.megarunii.log.Logger
 class API(private var context:Context, private var AppConfig: Configuration) {
 
 
-    private var headers:MutableMap<String, String> = mutableMapOf()
+    private var headers: MutableMap<String, String> = mutableMapOf()
     private var request: Request = Request(context)
 
-    private val OKHTTP_VER = "4.9.2"
-    private val BASE_URL = "https://api.wow.lk"
-
+    companion object {
+        private val OKHTTP_VER = "4.9.2"
+        private val BASE_URL = "https://api.wow.lk"
+    }
 
     init {
         headers.putAll(mapOf(

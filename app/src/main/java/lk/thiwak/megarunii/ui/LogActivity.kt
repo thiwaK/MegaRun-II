@@ -31,6 +31,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.FileObserver
 import android.text.Html
 import android.text.style.ReplacementSpan
 import android.util.Log
@@ -39,15 +40,14 @@ import lk.thiwak.megarunii.log.CustomBackgroundSpan
 
 class LogActivity : AppCompatActivity() {
 
-
     private var currentPosition: Long = 0
-    private val chunkSize = 1024*10
+    private val chunkSize = 1024 * 5
     private val logFileName = "app_log.txt"
     private lateinit var logScrollView: ScrollView
     private lateinit var logView: TextView
-    private lateinit var logBgDrawable:Drawable
-    val TAG:String = "LogActivity"
-
+    private lateinit var logBgDrawable: Drawable
+    private lateinit var fileObserver: FileObserver
+    val TAG: String = "LogActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,22 +56,39 @@ class LogActivity : AppCompatActivity() {
         logScrollView = findViewById(R.id.logScrollView)
         logView = findViewById(R.id.logView)
 
+        // Monitor scrolling to append chunks when at the bottom
         logScrollView.viewTreeObserver.addOnScrollChangedListener {
             val view = logScrollView.getChildAt(logScrollView.childCount - 1)
             val diff = (view.bottom - (logScrollView.height + logScrollView.scrollY))
-
             if (diff == 0) {
                 appendLogChunk()
             }
         }
 
-
         appendLogChunk()
 
         logScrollView.post {
-            logScrollView.scrollTo(0, logScrollView.getChildAt(0).height)
+            //logScrollView.scrollTo(0, logScrollView.getChildAt(0).height)
+            logScrollView.scrollTo(0, 0)
         }
 
+
+        // Initialize FileObserver
+        initFileObserver()
+    }
+
+    private fun initFileObserver() {
+        val logFilePath = File(filesDir, logFileName).absolutePath
+        fileObserver = object : FileObserver(logFilePath, MODIFY) {
+            override fun onEvent(event: Int, path: String?) {
+                if (event == MODIFY) {
+                    runOnUiThread {
+                        appendLogChunk()
+                    }
+                }
+            }
+        }
+        fileObserver.startWatching()
     }
 
     private fun appendLogChunk() {
@@ -79,48 +96,44 @@ class LogActivity : AppCompatActivity() {
             val logFile = File(filesDir, logFileName)
             if (logFile.exists()) {
                 RandomAccessFile(logFile, "r").use { reader ->
-                    reader.seek(currentPosition)
-                    val buffer = ByteArray(chunkSize)
-                    val charsRead = reader.read(buffer)
-                    if (charsRead > 0) {
-                        val newContent = String(buffer, 0, charsRead)
-                        currentPosition += charsRead
+                    if (currentPosition == 0L) {
+                        currentPosition = reader.length()
+                    }
 
-                        val logEntries = newContent.split("\n") // Split by lines
-                        var count = 0;
+                    val newPosition = (currentPosition - chunkSize).coerceAtLeast(0)
+                    val sizeToRead = (currentPosition - newPosition).toInt()
 
-                        logEntries.forEach { logEntry ->
-                            // val formattedLogEntry = htmlFormatter(logEntry)
+                    reader.seek(newPosition)
+                    val buffer = ByteArray(sizeToRead)
+                    reader.readFully(buffer)
 
-                            if (logEntry.trim().isEmpty()){
-                                return@forEach
-                            }
+                    currentPosition = newPosition
 
-                            val (date, logLevel, message) = parseLogEntry(logEntry)
+                    val newContent = String(buffer)
+                    val logEntries = newContent.split("\n").reversed()
 
-                            if (date.isEmpty() || logLevel.isEmpty() || message.isEmpty()){
-                                return@forEach
-                            }
+                    logEntries.forEach { logEntry ->
+                        if (logEntry.trim().isEmpty()) return@forEach
 
-                            logBgDrawable = if (count%2 == 0){
-                                ContextCompat.getDrawable(this, R.drawable.log_box_background_a)!! } else {
-                                ContextCompat.getDrawable(this, R.drawable.log_box_background_b)!! }
+                        val (date, logLevel, message) = parseLogEntry(logEntry)
 
+                        if (date.isEmpty() || logLevel.isEmpty() || message.isEmpty()) return@forEach
 
-
-                            // val coloredMessage = applyLogColor(logLevel, message, count%2)
-                            var spannableMessage = SpannableString(logEntry)
-                            spannableMessage.setSpan(
-                                CustomBackgroundSpan(logBgDrawable),
-                                0,
-                                logEntry.length,
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                            )
-                            logView.append(spannableMessage)
-                            count += 1
-
-
+                        logBgDrawable = if (logView.lineCount % 2 == 0) {
+                            ContextCompat.getDrawable(this, R.drawable.log_box_background_a)!!
+                        } else {
+                            ContextCompat.getDrawable(this, R.drawable.log_box_background_b)!!
                         }
+
+                        val spannableMessage = SpannableString(logEntry)
+                        spannableMessage.setSpan(
+                            CustomBackgroundSpan(logBgDrawable),
+                            0,
+                            logEntry.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+
+                        logView.append(spannableMessage)
                     }
                 }
             } else {
@@ -132,7 +145,6 @@ class LogActivity : AppCompatActivity() {
         }
     }
 
-
     private fun parseLogEntry(logEntry: String): Triple<String, String, String> {
         val regex = """\[(.*?)\] \[(.*?)\] (.*)""".toRegex()
         val matchResult = regex.matchEntire(logEntry)
@@ -140,21 +152,14 @@ class LogActivity : AppCompatActivity() {
         return matchResult?.let {
             val (datetime, level, message) = it.destructured
             Triple(datetime, level, message)
-        } ?:
-
-        return Triple("", "", "")
-
-
-//        val parts = logEntry.split(" ", limit = 3)
-//        Log.i(TAG, "$parts[0] $parts[1] $parts[2]\n")
-//        return if (parts.size == 3) {
-//            parts[1] to  "$parts[0] $parts[1] $parts[2]\n"
-//
-//        } else {
-//            "[D]" to logEntry
-//        }
+        } ?: Triple("", "", "")
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        fileObserver.stopWatching() // Stop watching the file when the activity is destroyed
+    }
 }
+
 
 

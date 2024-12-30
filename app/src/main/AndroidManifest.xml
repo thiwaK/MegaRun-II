@@ -18,6 +18,13 @@
         android:theme="@style/Theme.MegaRunII"
         tools:targetApi="31">
         <activity
+            android:name=".ui.WebViewActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".ui.LogActivity"
             android:exported="false">
             <meta-data
@@ -32,7 +39,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
@@ -45,8 +51,6 @@
                 <action android:name="lk.thiwak.megarunii.LOG_MESSAGE" />
             </intent-filter>
         </receiver>
-
-
         <receiver
             android:name=".BackgroundService"
             android:enabled="true"
@@ -56,9 +60,10 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".BackgroundService" android:enabled="true" android:exported="false"/>
-
-
+        <service
+            android:name=".BackgroundService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

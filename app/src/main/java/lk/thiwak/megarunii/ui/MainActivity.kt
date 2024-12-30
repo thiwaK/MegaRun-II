@@ -7,10 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.GestureDetector
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.TextView
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebViewClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -19,7 +20,6 @@ import lk.thiwak.megarunii.*
 import lk.thiwak.megarunii.log.LogReceiver
 import lk.thiwak.megarunii.log.Logger
 import lk.thiwak.megarunii.network.Request
-import android.view.MotionEvent
 import android.widget.Toast
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -47,9 +47,6 @@ class MainActivity : AppCompatActivity() {
             Logger.debug(this, "FAB: set action to start")
         }
 
-
-
-
         fab.setOnClickListener {
             if (isServiceRunning(BackgroundService::class.java, this)) {
                 // If service is running, stop the service
@@ -60,6 +57,14 @@ class MainActivity : AppCompatActivity() {
                 startService()
             }
         }
+
+//        var browserMgr = BrowserManager()
+//        browserMgr.openUrl("https://duckduckgo.com")
+
+//        testNet()
+
+        val intent = Intent(this, WebViewActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -78,8 +83,6 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-
-
     private fun isServiceRunning(serviceClass: Class<out Service>, context: Context): Boolean {
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -89,7 +92,6 @@ class MainActivity : AppCompatActivity() {
         }
         return false
     }
-
 
     private fun startService(){
         Logger.debug(this, "Action: start service")
@@ -110,18 +112,6 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Service Stopped", Toast.LENGTH_SHORT).show()
     }
 
-    private fun testNet() {
-        val initialHeaders = mapOf(
-            "User-Agent" to "OkHTTP",
-        )
-        val req: Request = Request(this)
-        req.addHeaders(initialHeaders)
 
-        GlobalScope.launch(Dispatchers.IO) {
-            val result = withContext(Dispatchers.IO) {
-                req.getData("https://duckduckgo.com", null)
-            }
-        }
-    }
+
 }
-
